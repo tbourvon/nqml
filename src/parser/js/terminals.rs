@@ -6,7 +6,7 @@ pub struct StringLiteral<'a>(pub &'a str);
 
 pub mod parsing {
 
-    use nom::{IResult, digit, hex_digit};
+    use nom::{IResult, digit, hex_digit, oct_digit};
     use parser::helpers::parsing::*;
     use parser::js::terminals::*;
 
@@ -16,6 +16,8 @@ pub mod parsing {
             decimal_literal
             |
             hex_integer_literal
+            |
+            octal_integer_literal
         ) >>
         (numeric_literal)
     ))));
@@ -25,12 +27,12 @@ pub mod parsing {
             do_parse!(
                 decimal_integer_literal >>
                 do_parse!(
-                    opt!(do_parse!(
+                    opt!(complete!(do_parse!(
                         tag_s!(".") >>
-                        opt!(digit) >>
+                        opt!(complete!(digit)) >>
                         ()
-                    )) >>
-                    opt!(exponential_part) >>
+                    ))) >>
+                    opt!(complete!(exponential_part)) >>
                     ()
                 ) >>
                 ()
@@ -38,8 +40,8 @@ pub mod parsing {
             |
             do_parse!(
                 tag_s!(".") >>
-                digit >>
-                opt!(exponential_part) >>
+                complete!(digit) >>
+                opt!(complete!(exponential_part)) >>
                 ()
             )
         )) >>
@@ -47,7 +49,13 @@ pub mod parsing {
     ));
 
     named!(decimal_integer_literal<&str, &str>, recognize!(alt!(
-        do_parse!(tag_s!("0") >> ())
+        do_parse!(
+            tag_s!("0") >> 
+            not!(digit) >>
+            not!(tag_s!("x")) >>
+            not!(tag_s!("X")) >>
+            ()
+        )
         |
         do_parse!(
             not!(tag_s!("0")) >>
@@ -67,6 +75,12 @@ pub mod parsing {
         alt!(tag_s!("0x") | tag_s!("0X")) >>
         hex: hex_digit >>
         (i64::from_str_radix(hex, 16).unwrap() as f64)
+    ));
+
+    named!(octal_integer_literal<&str, f64>, do_parse!(
+        tag_s!("0") >>
+        octal: oct_digit >>
+        (i64::from_str_radix(octal, 8).unwrap() as f64)
     ));
 
     named!(pub string_literal<&str, StringLiteral>, do_parse!(
@@ -224,4 +238,32 @@ pub mod parsing {
         tag_s!("\u{2029}")
     ));
 
+    #[cfg(test)]
+    mod tests {
+        use nom::{ErrorKind, Needed};
+        use super::*;
+
+        #[test]
+        fn numeric_literal() {
+            assert_eq!(super::numeric_literal(""), IResult::Incomplete(Needed::Size(1)));
+
+            // Decimal
+            assert_eq!(super::numeric_literal("42"), IResult::Done("", NumericLiteral(42_f64)));
+            assert_eq!(super::numeric_literal("0"), IResult::Done("", NumericLiteral(0_f64)));
+            assert_eq!(super::numeric_literal("42.42e-4"), IResult::Done("", NumericLiteral(42.42e-4_f64)));
+            assert_eq!(super::numeric_literal(".42"), IResult::Done("", NumericLiteral(0.42_f64)));
+            assert_eq!(super::numeric_literal("42."), IResult::Done("", NumericLiteral(42_f64)));
+
+            assert_eq!(super::numeric_literal("+42"), IResult::Error(ErrorKind::Alt)); // Identity is unary expression
+            assert_eq!(super::numeric_literal("-42"), IResult::Error(ErrorKind::Alt)); // Negation is unary expression
+            assert_eq!(super::numeric_literal("."), IResult::Error(ErrorKind::Alt));
+
+            // Octal
+            assert_eq!(super::numeric_literal("042"), IResult::Done("", NumericLiteral(34_f64)));
+
+            // Hex
+            assert_eq!(super::numeric_literal("0x42"), IResult::Done("", NumericLiteral(66_f64)));
+            assert_eq!(super::numeric_literal("0X42"), IResult::Done("", NumericLiteral(66_f64)));
+        }
+    }
 }

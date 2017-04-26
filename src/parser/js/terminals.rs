@@ -278,5 +278,15 @@ pub mod parsing {
             assert_eq!(super::string_literal("'hi"), IResult::Error(ErrorKind::TakeUntil));
         }
 
+        #[test]
+        fn identifier() {
+            assert_eq!(super::identifier("foo"), IResult::Done("", "foo"));
+            assert_eq!(super::identifier(" foo"), IResult::Done("", "foo"));
+            assert_eq!(super::identifier("foo bar"), IResult::Done(" bar", "foo"));
+
+            assert_eq!(super::identifier(""), IResult::Incomplete(Needed::Size(1)));
+
+            assert_eq!(super::identifier("42foo"), IResult::Error(ErrorKind::Verify));
+        }
     }
 }

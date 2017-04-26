@@ -1,7 +1,7 @@
 #[derive(Debug, PartialEq)]
 pub struct NumericLiteral(pub f64);
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct StringLiteral<'a>(pub &'a str);
 
 pub mod parsing {
@@ -265,5 +265,17 @@ pub mod parsing {
             assert_eq!(super::numeric_literal("0x42"), IResult::Done("", NumericLiteral(66_f64)));
             assert_eq!(super::numeric_literal("0X42"), IResult::Done("", NumericLiteral(66_f64)));
         }
+
+        #[test]
+        fn string_literal() {
+            assert_eq!(super::string_literal("\"hi\""), IResult::Done("", StringLiteral("hi")));
+            assert_eq!(super::string_literal(" 'hi'"), IResult::Done("", StringLiteral("hi")));
+
+            assert_eq!(super::string_literal(""), IResult::Incomplete(Needed::Size(1)));
+
+            assert_eq!(super::string_literal("\"hi"), IResult::Error(ErrorKind::TakeUntil)); // FIXME: https://github.com/Geal/nom/issues/397
+            assert_eq!(super::string_literal("'hi"), IResult::Error(ErrorKind::TakeUntil));
+        }
+
     }
 }

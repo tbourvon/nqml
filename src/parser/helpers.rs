@@ -1,8 +1,6 @@
 #[macro_use]
 pub mod parsing {
 
-    use nom::{IResult, Needed};
-
     macro_rules! conv {
         ($i:expr, $t:tt :: $t2:tt($($e2:tt)*)) => (do_parse!($i, r: $($e2)* >> ($t :: $t2(r))));
         ($i:expr, $t:tt($($e2:tt)*)) => (do_parse!($i, r: $($e2)* >> ($t(r))));
@@ -11,6 +9,8 @@ pub mod parsing {
     macro_rules! keyword {
         ($i:expr, $e:expr) => (keyword($i, $e))
     }
+
+    use nom::{IResult, Needed};
 
     pub fn box_opt<T>(i: Option<T>) -> Option<Box<T>> {
         match i {

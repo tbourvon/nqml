@@ -1,26 +1,73 @@
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct NumericLiteral(pub f64);
+
 #[derive(Debug)]
 pub struct StringLiteral<'a>(pub &'a str);
 
 pub mod parsing {
 
-    use nom::{IResult, double_s, digit};
+    use nom::{IResult, digit, hex_digit};
     use parser::helpers::parsing::*;
     use parser::js::terminals::*;
 
     named!(pub numeric_literal<&str, NumericLiteral>, conv!(NumericLiteral(do_parse!(
         take_while_s!(is_whitespace) >>
         numeric_literal: alt!(
-            double_s
+            decimal_literal
             |
-            do_parse!(
-                int: digit >>
-                (int.parse::<f64>().unwrap())
-            )
+            hex_integer_literal
         ) >>
         (numeric_literal)
     ))));
+
+    named!(decimal_literal<&str, f64>, do_parse!(
+        dec_lit: recognize!(alt!(
+            do_parse!(
+                decimal_integer_literal >>
+                do_parse!(
+                    opt!(do_parse!(
+                        tag_s!(".") >>
+                        opt!(digit) >>
+                        ()
+                    )) >>
+                    opt!(exponential_part) >>
+                    ()
+                ) >>
+                ()
+            )
+            |
+            do_parse!(
+                tag_s!(".") >>
+                digit >>
+                opt!(exponential_part) >>
+                ()
+            )
+        )) >>
+        (dec_lit.parse::<f64>().unwrap())
+    ));
+
+    named!(decimal_integer_literal<&str, &str>, recognize!(alt!(
+        do_parse!(tag_s!("0") >> ())
+        |
+        do_parse!(
+            not!(tag_s!("0")) >>
+            digit >>
+            ()
+        )
+    )));
+
+    named!(exponential_part<&str, &str>, recognize!(do_parse!(
+        alt!(tag_s!("e") | tag_s!("E")) >>
+        opt!(alt!(tag_s!("+") | tag_s!("-"))) >>
+        digit >>
+        ()
+    )));
+
+    named!(hex_integer_literal<&str, f64>, do_parse!(
+        alt!(tag_s!("0x") | tag_s!("0X")) >>
+        hex: hex_digit >>
+        (i64::from_str_radix(hex, 16).unwrap() as f64)
+    ));
 
     named!(pub string_literal<&str, StringLiteral>, do_parse!(
         delimiter: alt!(

@@ -249,7 +249,7 @@ pub mod parsing {
 
             // Decimal
             assert_eq!(super::numeric_literal("42"), IResult::Done("", NumericLiteral(42_f64)));
-            assert_eq!(super::numeric_literal(" 42"), IResult::Done("", NumericLiteral(42_f64)));
+            assert_eq!(super::numeric_literal(" 42 "), IResult::Done(" ", NumericLiteral(42_f64)));
             assert_eq!(super::numeric_literal("0"), IResult::Done("", NumericLiteral(0_f64)));
             assert_eq!(super::numeric_literal("42.42e-4"), IResult::Done("", NumericLiteral(42.42e-4_f64)));
             assert_eq!(super::numeric_literal(".42"), IResult::Done("", NumericLiteral(0.42_f64)));
@@ -270,7 +270,7 @@ pub mod parsing {
         #[test]
         fn string_literal() {
             assert_eq!(super::string_literal("\"hi\""), IResult::Done("", StringLiteral("hi")));
-            assert_eq!(super::string_literal(" 'hi'"), IResult::Done("", StringLiteral("hi")));
+            assert_eq!(super::string_literal(" 'hi' "), IResult::Done(" ", StringLiteral("hi")));
 
             assert_eq!(super::string_literal(""), IResult::Incomplete(Needed::Size(1)));
 

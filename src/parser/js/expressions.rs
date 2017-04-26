@@ -281,7 +281,11 @@ pub mod parsing {
         do_parse!(i,
             first: assignment_expression_not_in >>
             fold: fold_many0!(
-                assignment_expression_not_in,
+                do_parse!(
+                    keyword!(",") >>
+                    expr: assignment_expression_not_in >>
+                    (expr)
+                ),
                 first,
                 |acc: Expression<'a>, item: Expression<'a>| {
                     Expression::ExpressionList(ExpressionList {

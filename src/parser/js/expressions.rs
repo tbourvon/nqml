@@ -363,7 +363,7 @@ pub mod parsing {
     ));
 
     binary_op!(logical_or_expression, "||", logical_and_expression);
-    binary_op!(logical_or_expression_not_in, "||", logical_and_expression_not_in); // TODO: fix not_in when macros are allowed as idents
+    binary_op!(logical_or_expression_not_in, "||", logical_and_expression_not_in); // FIXME: not_in when macros are allowed as idents
 
     binary_op!(logical_and_expression, "&&", bitwise_or_expression);
     binary_op!(logical_and_expression_not_in, "&&", bitwise_or_expression_not_in);

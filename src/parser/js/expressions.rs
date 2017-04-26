@@ -446,12 +446,14 @@ pub mod parsing {
     named!(postfix_expression<&str, Expression>, alt!(
         do_parse!(
             expression: left_hand_side_expression >>
+            not!(line_terminator) >>
             keyword!("++") >>
             (Expression::PostIncrementExpression(PostIncrementExpression(Box::new(expression))))
         )
         |
         do_parse!(
             expression: left_hand_side_expression >>
+            not!(line_terminator) >>
             keyword!("--") >>
             (Expression::PostDecrementExpression(PostDecrementExpression(Box::new(expression))))
         )

@@ -157,7 +157,7 @@ pub mod parsing {
     named!(ui_pragma<&str, UiPragma>, do_parse!(
         keyword!("pragma") >>
         pragma_type: ui_qualified_pragma_id >>
-        keyword!(";") >>
+        automatic_semicolon >>
         (UiPragma {
             pragma_type: pragma_type
         })
@@ -172,7 +172,7 @@ pub mod parsing {
             import_id: js_identifier >>
             (import_id)
         )) >>
-        keyword!(";") >>
+        automatic_semicolon >>
         (UiImport {
             file: file,
             version: version,
@@ -234,7 +234,7 @@ pub mod parsing {
                 keyword!(")") >>
                 (parameters)
             )) >>
-            keyword!(";") >>
+            automatic_semicolon >>
             (UiObjectMember::UiPublicMember(UiPublicMember {
                 name: name,
                 type_modifier: None,
@@ -286,7 +286,7 @@ pub mod parsing {
             member_type: ui_property_type >>
             keyword!(">") >>
             name: js_identifier >>
-            keyword!(";") >>
+            automatic_semicolon >>
             (UiObjectMember::UiPublicMember(UiPublicMember {
                 name: name,
                 type_modifier: Some(type_modifier),
@@ -361,7 +361,7 @@ pub mod parsing {
             keyword!("property") >>
             member_type: ui_property_type >>
             name: js_identifier >>
-            keyword!(";") >>
+            automatic_semicolon >>
             (UiObjectMember::UiPublicMember(UiPublicMember {
                 name: name,
                 type_modifier: None,

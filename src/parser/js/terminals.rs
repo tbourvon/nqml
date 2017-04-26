@@ -5,7 +5,7 @@ pub struct StringLiteral<'a>(pub &'a str);
 
 pub mod parsing {
 
-    use nom::{double_s, digit};
+    use nom::{IResult, double_s, digit};
     use parser::helpers::parsing::*;
     use parser::js::terminals::*;
 
@@ -151,6 +151,30 @@ pub mod parsing {
         keyword!("^=")
         |
         keyword!("|=")
+    ));
+
+    named!(pub automatic_semicolon<&str, &str>, alt!(
+        keyword!(";")
+        |
+        peek!(line_terminator)
+        |
+        peek!(keyword!("}"))
+        |
+        eof
+    ));
+
+    fn eof(i: &str) -> IResult<&str, &str> {
+        eof!(i,)
+    }
+
+    named!(pub line_terminator<&str, &str>, alt!(
+        tag_s!("\r\n")
+        |
+        tag_s!("\n")
+        |
+        tag_s!("\u{2028}")
+        |
+        tag_s!("\u{2029}")
     ));
 
 }

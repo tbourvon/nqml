@@ -256,7 +256,7 @@ pub mod parsing {
     named!(pub variable_statement<&str, VariableStatement>, do_parse!(
         kind: variable_declaration_kind >>
         declarations: variable_declaration_list!(kind) >>
-        keyword!(";") >>
+        automatic_semicolon >>
         (VariableStatement {
             declarations: declarations,
         })
@@ -323,13 +323,13 @@ pub mod parsing {
     ));
 
     named!(pub empty_statement<&str, EmptyStatement>, do_parse!(
-        keyword!(";") >>
+        automatic_semicolon >>
         (EmptyStatement)
     ));
 
     named!(pub expression_statement<&str, ExpressionStatement>, do_parse!(
         expression: expression_list >>
-        keyword!(";") >>
+        automatic_semicolon >>
         (ExpressionStatement(Box::new(expression)))
     ));
 
@@ -359,7 +359,7 @@ pub mod parsing {
             keyword!("(") >>
             expression: expression_list >>
             keyword!(")") >>
-            keyword!(";") >>
+            automatic_semicolon >>
             (IterationStatement::DoWhileStatement(DoWhileStatement {
                 statement: Box::new(statement),
                 expression: Box::new(expression),
@@ -461,22 +461,34 @@ pub mod parsing {
 
     named!(continue_statement<&str, ContinueStatement>, do_parse!(
         keyword!("continue") >>
-        label: opt!(js_identifier) >>
-        keyword!(";") >>
+        label: opt!(do_parse!(
+            not!(line_terminator) >>
+            label: js_identifier >>
+            (label)
+        )) >>
+        automatic_semicolon >>
         (ContinueStatement(label))
     ));
 
     named!(break_statement<&str, BreakStatement>, do_parse!(
         keyword!("break") >>
-        label: opt!(js_identifier) >>
-        keyword!(";") >>
+        label: opt!(do_parse!(
+            not!(line_terminator) >>
+            label: js_identifier >>
+            (label)
+        )) >>
+        automatic_semicolon >>
         (BreakStatement(label))
     ));
 
     named!(return_statement<&str, ReturnStatement>, do_parse!(
         keyword!("return") >>
-        expression: opt!(expression_list) >>
-        keyword!(";") >>
+        expression: opt!(do_parse!(
+            not!(line_terminator) >>
+            expression: expression_list >>
+            (expression)
+        )) >>
+        automatic_semicolon >>
         (ReturnStatement(box_opt(expression)))
     ));
 
@@ -561,8 +573,9 @@ pub mod parsing {
 
     named!(throw_statement<&str, ThrowStatement>, do_parse!(
         keyword!("throw") >>
+        not!(line_terminator) >>
         expression: expression_list >>
-        keyword!(";") >>
+        automatic_semicolon >>
         (ThrowStatement(Box::new(expression)))
     ));
 
@@ -615,7 +628,7 @@ pub mod parsing {
 
     named!(debugger_statement<&str, DebuggerStatement>, do_parse!(
         keyword!("debugger") >>
-        keyword!(";") >>
+        automatic_semicolon >>
         (DebuggerStatement)
     ));
 

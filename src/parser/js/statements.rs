@@ -323,7 +323,7 @@ pub mod parsing {
     ));
 
     named!(pub empty_statement<&str, EmptyStatement>, do_parse!(
-        automatic_semicolon >>
+        keyword!(";") >>
         (EmptyStatement)
     ));
 

@@ -3,7 +3,7 @@ use parser::js::*;
 use parser::js::terminals::*;
 
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Expression<'a> {
     CallExpression(CallExpression<'a>),
     ConditionalExpression(ConditionalExpression<'a>),
@@ -39,141 +39,141 @@ pub enum Expression<'a> {
     NewExpression(NewExpression<'a>),
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct CallExpression<'a> {
     pub base: Box<Expression<'a>>,
     pub arguments: Option<ArgumentList<'a>>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct ArgumentList<'a>(pub std::vec::Vec<Expression<'a>>);
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct ConditionalExpression<'a> {
     pub expression: Box<Expression<'a>>,
     pub ok: Box<Expression<'a>>,
     pub ko: Box<Expression<'a>>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct BinaryExpression<'a> {
     pub left: Box<Expression<'a>>,
     pub operator: &'a str,
     pub right: Box<Expression<'a>>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct NotExpression<'a>(pub Box<Expression<'a>>);
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct TildeExpression<'a>(pub Box<Expression<'a>>);
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct UnaryMinusExpression<'a>(pub Box<Expression<'a>>);
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct UnaryPlusExpression<'a>(pub Box<Expression<'a>>);
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct PreDecrementExpression<'a>(pub Box<Expression<'a>>);
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct PreIncrementExpression<'a>(pub Box<Expression<'a>>);
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct TypeOfExpression<'a>(pub Box<Expression<'a>>);
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct VoidExpression<'a>(pub Box<Expression<'a>>);
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct DeleteExpression<'a>(pub Box<Expression<'a>>);
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct PostDecrementExpression<'a>(pub Box<Expression<'a>>);
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct PostIncrementExpression<'a>(pub Box<Expression<'a>>);
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct FunctionExpression<'a> {
     pub name: Option<&'a str>,
     pub formals: Option<FormalParameterList<'a>>,
     pub body: Option<FunctionBody<'a>>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct ArrayMemberExpression<'a> {
     pub base: Box<Expression<'a>>,
     pub expression: Box<Expression<'a>>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct FieldMemberExpression<'a> {
     pub base: Box<Expression<'a>>,
     pub name: &'a str,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct NewMemberExpression<'a> {
     pub base: Box<Expression<'a>>,
     pub arguments: Option<ArgumentList<'a>>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct ThisExpression;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct IdentifierExpression<'a>(pub &'a str);
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct NullExpression;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct TrueLiteral;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct FalseLiteral;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct ArrayLiteral<'a> {
     pub elements: Option<ElementList<'a>>,
     pub elision: Option<Elision>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct ElementList<'a>(pub std::vec::Vec<Element<'a>>);
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct Element<'a> {
     pub elision: Option<Elision>,
     pub expression: Expression<'a>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct Elision(pub usize);
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct ObjectLiteral<'a> {
     pub properties: Option<PropertyAssignmentList<'a>>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct PropertyAssignmentList<'a>(pub std::vec::Vec<PropertyAssignment<'a>>);
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum PropertyAssignment<'a> {
     PropertyNameAndValue(PropertyNameAndValue<'a>),
     PropertyGetterSetter(PropertyGetterSetter<'a>),
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct PropertyNameAndValue<'a> {
     pub name: PropertyName<'a>,
     pub value: Expression<'a>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct PropertyGetterSetter<'a> {
     pub name: PropertyName<'a>,
     pub getter_setter_type: PropertyGetterSetterType,
@@ -181,38 +181,38 @@ pub struct PropertyGetterSetter<'a> {
     pub function_body: Option<FunctionBody<'a>>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum PropertyGetterSetterType {
     Getter,
     Setter,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum PropertyName<'a> {
     IdentifierPropertyName(IdentifierPropertyName<'a>),
     StringLiteralPropertyName(StringLiteralPropertyName<'a>),
     NumericLiteralPropertyName(NumericLiteralPropertyName),
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct IdentifierPropertyName<'a>(pub &'a str);
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct StringLiteralPropertyName<'a>(pub StringLiteral<'a>);
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct NumericLiteralPropertyName(pub NumericLiteral);
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct NestedExpression<'a>(pub Box<Expression<'a>>);
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct ExpressionList<'a> {
     pub left: Box<Expression<'a>>,
     pub right: Box<Expression<'a>>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct NewExpression<'a>(pub Box<Expression<'a>>);
 
 pub mod parsing {
@@ -757,5 +757,50 @@ pub mod parsing {
             body: body,
         }))
     ));
+
+    #[cfg(test)]
+    mod tests {
+        use nom::{ErrorKind, Needed};
+        use super::*;
+
+        #[test]
+        fn function_expression() {
+            assert_eq!(
+                super::function_expression(" function () {} "),
+                IResult::Done(" ", Expression::FunctionExpression(FunctionExpression {
+                    name: None,
+                    formals: None,
+                    body: None,
+                }))
+            );
+
+            {
+                let name = "foo";
+                let formals = "bar, test";
+                let body = ";;";
+
+                let input = format!("function {}({}) {{{}}} ", name, formals, body);
+                assert_eq!(
+                    super::function_expression(&input),
+                    IResult::Done(" ", Expression::FunctionExpression(FunctionExpression {
+                        name: Some(super::js_identifier(name).unwrap().1),
+                        formals: Some(super::formal_parameter_list(formals).unwrap().1),
+                        body: Some(super::function_body(body).unwrap().1),
+                    }))
+                );
+            }
+
+            assert_eq!(super::function_expression(""), IResult::Incomplete(Needed::Size(8)));
+            assert_eq!(
+                super::function_expression("function () {{ "),
+                IResult::Incomplete(Needed::Size(16))
+            );
+
+            assert_eq!(
+                super::function_expression("function ( {{}} "),
+                IResult::Error(ErrorKind::Tag)
+            );
+        }
+    }
 
 }

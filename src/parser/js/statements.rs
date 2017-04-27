@@ -1,10 +1,10 @@
 use std;
 use parser::js::expressions::*;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct StatementList<'a>(pub std::vec::Vec<Statement<'a>>);
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Statement<'a> {
     Block(Block<'a>),
     VariableStatement(VariableStatement<'a>),
@@ -23,46 +23,46 @@ pub enum Statement<'a> {
     DebuggerStatement(DebuggerStatement),
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct Block<'a> {
     pub statements: Option<StatementList<'a>>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct VariableStatement<'a> {
     pub declarations: VariableDeclarationList<'a>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct VariableDeclarationList<'a>(pub std::vec::Vec<VariableDeclaration<'a>>);
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct VariableDeclaration<'a> {
     pub name: &'a str,
     pub expression: Option<Box<Expression<'a>>>,
     pub kind: VariableDeclarationKind,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum VariableDeclarationKind {
     Const,
     Var,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct EmptyStatement;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct ExpressionStatement<'a>(pub Box<Expression<'a>>);
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct IfStatement<'a> {
     pub expression: Box<Expression<'a>>,
     pub ok: Box<Statement<'a>>,
     pub ko: Option<Box<Statement<'a>>>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum IterationStatement<'a> {
     DoWhileStatement(DoWhileStatement<'a>),
     WhileStatement(WhileStatement<'a>),
@@ -72,19 +72,19 @@ pub enum IterationStatement<'a> {
     LocalForEachStatement(LocalForEachStatement<'a>),
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct DoWhileStatement<'a> {
     pub statement: Box<Statement<'a>>,
     pub expression: Box<Expression<'a>>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct WhileStatement<'a> {
     pub expression: Box<Expression<'a>>,
     pub statement: Box<Statement<'a>>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct ForStatement<'a> {
     pub initialiser: Option<Box<Expression<'a>>>,
     pub condition: Option<Box<Expression<'a>>>,
@@ -92,7 +92,7 @@ pub struct ForStatement<'a> {
     pub statement: Box<Statement<'a>>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct LocalForStatement<'a> {
     pub declarations: VariableDeclarationList<'a>,
     pub condition: Option<Box<Expression<'a>>>,
@@ -100,90 +100,90 @@ pub struct LocalForStatement<'a> {
     pub statement: Box<Statement<'a>>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct ForEachStatement<'a> {
     pub initialiser: Box<Expression<'a>>,
     pub expression: Box<Expression<'a>>,
     pub statement: Box<Statement<'a>>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct LocalForEachStatement<'a> {
     pub declaration: VariableDeclaration<'a>,
     pub expression: Box<Expression<'a>>,
     pub statement: Box<Statement<'a>>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct ContinueStatement<'a>(pub Option<&'a str>);
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct BreakStatement<'a>(pub Option<&'a str>);
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct ReturnStatement<'a>(pub Option<Box<Expression<'a>>>);
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct WithStatement<'a> {
     pub expression: Box<Expression<'a>>,
     pub statement: Box<Statement<'a>>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct LabelledStatement<'a> {
     pub label: &'a str,
     pub statement: Box<Statement<'a>>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct SwitchStatement<'a> {
     pub expression: Box<Expression<'a>>,
     pub block: CaseBlock<'a>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct CaseBlock<'a> {
     pub clauses: Option<CaseClauses<'a>>,
     pub default_clause: Option<DefaultClause<'a>>,
     pub more_clauses: Option<CaseClauses<'a>>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct CaseClauses<'a>(pub std::vec::Vec<CaseClause<'a>>);
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct CaseClause<'a> {
     pub expression: Box<Expression<'a>>,
     pub statements: Option<StatementList<'a>>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct DefaultClause<'a> {
     pub statements: Option<StatementList<'a>>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct ThrowStatement<'a>(pub Box<Expression<'a>>);
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct TryStatement<'a> {
     pub statement: Box<Statement<'a>>,
     pub catch: Option<Catch<'a>>,
     pub finally: Option<Finally<'a>>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct Catch<'a> {
     pub name: &'a str,
     pub statement: Block<'a>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct Finally<'a> {
     pub statement: Block<'a>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct DebuggerStatement;
 
 pub mod parsing {

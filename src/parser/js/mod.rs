@@ -8,28 +8,28 @@ use parser::js::statements::*;
 #[derive(Debug)]
 pub struct Program<'a>(pub Option<SourceElements<'a>>);
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct SourceElements<'a>(pub std::vec::Vec<SourceElement<'a>>);
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum SourceElement<'a> {
     Statement(Statement<'a>),
     FunctionDeclaration(FunctionDeclaration<'a>),
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct FunctionDeclaration<'a> {
     pub name: &'a str,
     pub formals: Option<FormalParameterList<'a>>,
     pub body: Option<FunctionBody<'a>>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct FormalParameterList<'a>(pub std::vec::Vec<FormalParameter<'a>>);
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct FormalParameter<'a>(pub &'a str);
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct FunctionBody<'a>(pub SourceElements<'a>);
 
 pub mod parsing {

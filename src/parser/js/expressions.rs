@@ -588,7 +588,7 @@ pub mod parsing {
                                     name: n,
                                 })
                             },
-                            _ => panic!("Logic is broken"),
+                            _ => panic!("member_expression is broken"),
                         }
                     }
                 ) >>

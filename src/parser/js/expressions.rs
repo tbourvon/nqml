@@ -481,39 +481,62 @@ pub mod parsing {
         member_expression
     ));
 
-    named!(call_expression<&str, Expression>, alt!(
-        do_parse!(
-            base: alt!(member_expression | call_expression) >>
-            keyword!("(") >>
-            arguments: opt!(argument_list) >>
-            keyword!(")") >>
-            (Expression::CallExpression(CallExpression {
-                base: Box::new(base),
-                arguments: arguments,
-            }))
+    fn call_expression<'a>(i: &'a str) -> IResult<&'a str, Expression<'a>> { 
+        do_parse!(i,
+            first: do_parse!(
+                base: member_expression >>
+                keyword!("(") >>
+                arguments: opt!(argument_list) >>
+                keyword!(")") >>
+                (Expression::CallExpression(CallExpression {
+                    base: Box::new(base),
+                    arguments: arguments,
+                }))
+            ) >>
+            fold: fold_many0!(
+                alt!(
+                    do_parse!(
+                        keyword!("(") >>
+                        arguments: opt!(argument_list) >>
+                        keyword!(")") >>
+                        (Some(arguments), None, None)
+                    )
+                    |
+                    do_parse!(
+                        keyword!("[") >>
+                        expression: expression_list >>
+                        keyword!("]") >>
+                        (None, Some(expression), None)
+                    )
+                    |
+                    do_parse!(
+                        keyword!(".") >>
+                        name: property_identifier >>
+                        (None, None, Some(name))
+                    )
+                ),
+                first,
+                |acc: Expression<'a>, item: (Option<Option<ArgumentList<'a>>>, Option<Expression<'a>>, Option<&'a str>)| {
+                    match item {
+                        (Some(al), None, None) => Expression::CallExpression(CallExpression {
+                            base: Box::new(acc),
+                            arguments: al,
+                        }),
+                        (None, Some(e), None) => Expression::ArrayMemberExpression(ArrayMemberExpression {
+                            base: Box::new(acc),
+                            expression: Box::new(e),
+                        }),
+                        (None, None, Some(n)) => Expression::FieldMemberExpression(FieldMemberExpression {
+                            base: Box::new(acc),
+                            name: n,
+                        }),
+                        _ => panic!("call_expression is broken")
+                    }
+                }
+            ) >>
+            (fold)
         )
-        |
-        do_parse!(
-            base: call_expression >>
-            keyword!("[") >>
-            expression: expression_list >>
-            keyword!("]") >>
-            (Expression::ArrayMemberExpression(ArrayMemberExpression {
-                base: Box::new(base),
-                expression: Box::new(expression),
-            }))
-        )
-        |
-        do_parse!(
-            base: call_expression >>
-            keyword!(".") >>
-            name: property_identifier >>
-            (Expression::FieldMemberExpression(FieldMemberExpression {
-                base: Box::new(base),
-                name: name,
-            }))
-        )
-    ));
+    }
 
     pub fn member_expression<'a>(i: &'a str) -> IResult<&'a str, Expression<'a>> {
         alt!(i,

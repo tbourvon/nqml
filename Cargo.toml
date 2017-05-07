@@ -6,3 +6,7 @@ authors = ["Tristan 'BurningMind' Bourvon <tristanbourvon@gmail.com>"]
 
 [dependencies]
 nom = "^2.2"
+clippy = {version = "*", optional = true}
+
+[features]
+default = ["clippy"]

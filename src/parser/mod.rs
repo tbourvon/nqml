@@ -36,7 +36,7 @@ pub mod parsing {
         );
         match res {
             IResult::Done(input, output) => {
-                if input.len() != 0 {
+                if !input.is_empty() {
                     return Err(ErrorKind::Custom(10));
                 }
 

@@ -262,6 +262,7 @@ pub mod parsing {
         })
     ));
 
+    #[allow(needless_pass_by_value)]
     fn variable_declaration_list(i: &str, k: VariableDeclarationKind) -> IResult<&str, VariableDeclarationList> {
         conv!(i, VariableDeclarationList(separated_nonempty_list!(
             keyword!(","),
@@ -269,6 +270,7 @@ pub mod parsing {
         )))
     }
 
+    #[allow(needless_pass_by_value)]
     fn variable_declaration_list_not_in(i: &str, k: VariableDeclarationKind) -> IResult<&str, VariableDeclarationList> {
         conv!(i, VariableDeclarationList(separated_nonempty_list!(
             keyword!(","),
@@ -533,7 +535,7 @@ pub mod parsing {
         default_and_more_clauses: opt!(do_parse!(
             default_clause: default_clause >>
             more_clauses: opt!(case_clauses) >>
-            ((default_clause, more_clauses))
+            (default_clause, more_clauses)
         )) >>
         ({
             let (default_clause, more_clauses) = match default_and_more_clauses {
@@ -586,17 +588,17 @@ pub mod parsing {
             do_parse!(
                 catch: catch >>
                 finally: finally >>
-                ((Some(catch), Some(finally)))
+                (Some(catch), Some(finally))
             )
             |
             do_parse!(
                 catch: catch >>
-                ((Some(catch), None))
+                (Some(catch), None)
             )
             |
             do_parse!(
                 finally: finally >>
-                ((None, Some(finally)))
+                (None, Some(finally))
             )
         ) >>
         (TryStatement {

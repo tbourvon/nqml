@@ -232,7 +232,7 @@ pub mod parsing {
                                 )*
                             ) >>
                             expr: $next >>
-                            ((operator, expr))
+                            (operator, expr)
                         ),
                         first,
                         |acc: Expression<'a>, item: (&'a str, Expression<'a>)| {
@@ -481,6 +481,7 @@ pub mod parsing {
         member_expression
     ));
 
+    #[allow(cyclomatic_complexity)]
     fn call_expression<'a>(i: &'a str) -> IResult<&'a str, Expression<'a>> { 
         do_parse!(i,
             first: do_parse!(
@@ -538,6 +539,7 @@ pub mod parsing {
         )
     }
 
+    #[allow(cyclomatic_complexity)]
     pub fn member_expression<'a>(i: &'a str) -> IResult<&'a str, Expression<'a>> {
         alt!(i,
             do_parse!(
@@ -564,13 +566,13 @@ pub mod parsing {
                             keyword!("[") >>
                             expression: expression_list >>
                             keyword!("]") >>
-                            ((Some(expression), None))
+                            (Some(expression), None)
                         )
                         |
                         do_parse!(
                             keyword!(".") >>
                             name: property_identifier >>
-                            ((None, Some(name)))
+                            (None, Some(name))
                         )
                     ),
                     first,

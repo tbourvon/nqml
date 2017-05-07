@@ -425,11 +425,11 @@ pub mod parsing {
     ));
 
     named!(ui_script_statement<&str, Statement>, alt!(
+        conv!(Statement::ExpressionStatement(expression_statement))
+        |
         conv!(Statement::Block(block))
         |
         conv!(Statement::EmptyStatement(empty_statement))
-        |
-        conv!(Statement::ExpressionStatement(expression_statement))
         |
         conv!(Statement::IfStatement(if_statement))
         |

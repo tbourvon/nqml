@@ -301,7 +301,7 @@ pub mod parsing {
     named!(pub assignment_expression<&str, Expression>, alt!(
         do_parse!(
             left: left_hand_side_expression >>
-            operator: assignment_operator >>
+            operator: complete!(assignment_operator) >>
             right: assignment_expression >>
             (Expression::BinaryExpression(BinaryExpression {
                 left: Box::new(left),
@@ -316,7 +316,7 @@ pub mod parsing {
     named!(pub assignment_expression_not_in<&str, Expression>, alt!(
         do_parse!(
             left: left_hand_side_expression >>
-            operator: assignment_operator >>
+            operator: complete!(assignment_operator) >>
             right: assignment_expression_not_in >>
             (Expression::BinaryExpression(BinaryExpression {
                 left: Box::new(left),
@@ -331,7 +331,7 @@ pub mod parsing {
     named!(conditional_expression<&str, Expression>, alt!(
         do_parse!(
             expression: logical_or_expression >>
-            keyword!("?") >>
+            complete!(keyword!("?")) >>
             ok: assignment_expression >>
             keyword!(":") >>
             ko: assignment_expression >>
@@ -348,7 +348,7 @@ pub mod parsing {
     named!(conditional_expression_not_in<&str, Expression>, alt!(
         do_parse!(
             expression: logical_or_expression_not_in >>
-            keyword!("?") >>
+            complete!(keyword!("?")) >>
             ok: assignment_expression_not_in >>
             keyword!(":") >>
             ko: assignment_expression_not_in >>
@@ -451,14 +451,14 @@ pub mod parsing {
         do_parse!(
             expression: left_hand_side_expression >>
             not!(line_terminator) >>
-            keyword!("++") >>
+            complete!(keyword!("++")) >>
             (Expression::PostIncrementExpression(PostIncrementExpression(Box::new(expression))))
         )
         |
         do_parse!(
             expression: left_hand_side_expression >>
             not!(line_terminator) >>
-            keyword!("--") >>
+            complete!(keyword!("--")) >>
             (Expression::PostDecrementExpression(PostDecrementExpression(Box::new(expression))))
         )
         |
@@ -486,7 +486,7 @@ pub mod parsing {
         do_parse!(i,
             first: do_parse!(
                 base: member_expression >>
-                keyword!("(") >>
+                complete!(keyword!("(")) >>
                 arguments: opt!(argument_list) >>
                 keyword!(")") >>
                 (Expression::CallExpression(CallExpression {

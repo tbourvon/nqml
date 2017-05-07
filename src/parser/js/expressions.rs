@@ -762,11 +762,13 @@ pub mod parsing {
 
     #[cfg(test)]
     mod tests {
-        use nom::{ErrorKind, Needed};
+        use nom::{ErrorKind};
         use super::*;
 
         #[test]
         fn function_expression() {
+            assert!(super::function_expression("").is_incomplete());
+
             assert_eq!(
                 super::function_expression(" function () {} "),
                 IResult::Done(" ", Expression::FunctionExpression(FunctionExpression {
@@ -792,11 +794,7 @@ pub mod parsing {
                 );
             }
 
-            assert_eq!(super::function_expression(""), IResult::Incomplete(Needed::Size(8)));
-            assert_eq!(
-                super::function_expression("function () {{ "),
-                IResult::Incomplete(Needed::Size(16))
-            );
+            assert!(super::function_expression("function () {{ ").is_incomplete());
 
             assert_eq!(
                 super::function_expression("function ( {{}} "),

@@ -240,12 +240,12 @@ pub mod parsing {
 
     #[cfg(test)]
     mod tests {
-        use nom::{ErrorKind, Needed};
+        use nom::{ErrorKind};
         use super::*;
 
         #[test]
         fn numeric_literal() {
-            assert_eq!(super::numeric_literal(""), IResult::Incomplete(Needed::Size(1)));
+            assert!(super::numeric_literal("").is_incomplete());
 
             // Decimal
             assert_eq!(super::numeric_literal("42"), IResult::Done("", NumericLiteral(42_f64)));
@@ -269,10 +269,10 @@ pub mod parsing {
 
         #[test]
         fn string_literal() {
+            assert!(super::string_literal("").is_incomplete());
+
             assert_eq!(super::string_literal("\"hi\""), IResult::Done("", StringLiteral("hi")));
             assert_eq!(super::string_literal(" 'hi' "), IResult::Done(" ", StringLiteral("hi")));
-
-            assert_eq!(super::string_literal(""), IResult::Incomplete(Needed::Size(1)));
 
             assert_eq!(super::string_literal("\"hi"), IResult::Error(ErrorKind::TakeUntil)); // FIXME: https://github.com/Geal/nom/issues/397
             assert_eq!(super::string_literal("'hi"), IResult::Error(ErrorKind::TakeUntil));
@@ -280,11 +280,11 @@ pub mod parsing {
 
         #[test]
         fn identifier() {
+            assert!(super::identifier("").is_incomplete());
+
             assert_eq!(super::identifier("foo"), IResult::Done("", "foo"));
             assert_eq!(super::identifier(" foo"), IResult::Done("", "foo"));
             assert_eq!(super::identifier("foo bar"), IResult::Done(" bar", "foo"));
-
-            assert_eq!(super::identifier(""), IResult::Incomplete(Needed::Size(1)));
 
             assert_eq!(super::identifier("42foo"), IResult::Error(ErrorKind::Verify));
         }

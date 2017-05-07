@@ -766,6 +766,80 @@ pub mod parsing {
         use super::*;
 
         #[test]
+        fn primary_expression() {
+            assert!(super::primary_expression("").is_incomplete());
+
+            // Array literal
+            assert_eq!(
+                super::primary_expression(" [] "),
+                IResult::Done(" ", Expression::ArrayLiteral(ArrayLiteral {
+                    elements: None,
+                    elision: None,
+                }))
+            );
+
+            {
+                let elements = ",,true,";
+                let elision = ",,";
+
+                let input = format!("[{}{}] ", elements, elision);
+                assert_eq!(
+                    super::primary_expression(&input),
+                    IResult::Done(" ", Expression::ArrayLiteral(ArrayLiteral {
+                        elements: Some(super::element_list(elements).unwrap().1),
+                        elision: Some(super::elision(elision).unwrap().1),
+                    }))
+                );
+            }
+
+            assert!(super::primary_expression("[ ").is_incomplete());
+
+            // Object literal
+            assert_eq!(
+                super::primary_expression(" {} "),
+                IResult::Done(" ", Expression::ObjectLiteral(ObjectLiteral {
+                    properties: None,
+                }))
+            );
+
+
+            {
+                let properties = "test: true"; 
+                
+                let input = format!("{{{}}} ", properties);
+                assert_eq!(
+                    super::primary_expression(&input),
+                    IResult::Done(" ", Expression::ObjectLiteral(ObjectLiteral {
+                        properties: Some(super::property_assignment_list(properties).unwrap().1),
+                    }))
+                );
+            }
+
+
+            assert!(super::primary_expression("{ ").is_incomplete());
+
+            // Nested expressions
+            {
+                let expression = "true";
+
+                let input = format!("({}) ", expression);
+                assert_eq!(
+                    super::primary_expression(&input),
+                    IResult::Done(" ", Expression::NestedExpression(NestedExpression(Box::new(
+                        super::expression_list(expression).unwrap().1
+                    ))))
+                );
+            }
+
+            assert!(super::primary_expression("( ").is_incomplete());
+
+            assert_eq!(
+                super::primary_expression(" () "),
+                IResult::Error(ErrorKind::Alt)
+            );
+        }
+
+        #[test]
         fn function_expression() {
             assert!(super::function_expression("").is_incomplete());
 

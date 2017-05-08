@@ -766,6 +766,111 @@ pub mod parsing {
         use super::*;
 
         #[test]
+        fn call_expression() {
+            assert!(super::call_expression("").is_incomplete());
+
+            // Simple call
+            {
+                let base = "test";
+
+                let input = format!(" {}() ", base);
+
+                assert_eq!(
+                    super::call_expression(&input),
+                    IResult::Done(" ", Expression::CallExpression(CallExpression {
+                        base: Box::new(super::member_expression(base).unwrap().1),
+                        arguments: None,
+                    }))
+                );
+            }
+
+            {
+                let base = "test";
+                let arguments = "test";
+
+                let input = format!(" {}({}) ", base, arguments);
+
+                assert_eq!(
+                    super::call_expression(&input),
+                    IResult::Done(" ", Expression::CallExpression(CallExpression {
+                        base: Box::new(super::member_expression(base).unwrap().1),
+                        arguments: Some(super::argument_list(arguments).unwrap().1),
+                    }))
+                );
+            }
+
+            assert!(super::call_expression(" test ( ").is_incomplete());
+
+            // Chained call
+            {
+                let base = "test()";
+
+                let input = format!(" {}() ", base);
+
+                assert_eq!(
+                    super::call_expression(&input),
+                    IResult::Done(" ", Expression::CallExpression(CallExpression {
+                        base: Box::new(super::call_expression(base).unwrap().1),
+                        arguments: None,
+                    }))
+                );
+            }
+
+            {
+                let base = "test()";
+                let arguments = "test";
+
+                let input = format!(" {}({}) ", base, arguments);
+
+                assert_eq!(
+                    super::call_expression(&input),
+                    IResult::Done(" ", Expression::CallExpression(CallExpression {
+                        base: Box::new(super::call_expression(base).unwrap().1),
+                        arguments: Some(super::argument_list(arguments).unwrap().1),
+                    }))
+                );
+            }
+
+            assert!(super::call_expression(" test()( ").is_incomplete());
+
+            // Chained array member
+            {
+                let base = "test()";
+                let expression = "test";
+
+                let input = format!(" {}[{}] ", base, expression);
+
+                assert_eq!(
+                    super::call_expression(&input),
+                    IResult::Done(" ", Expression::ArrayMemberExpression(ArrayMemberExpression {
+                        base: Box::new(super::call_expression(base).unwrap().1),
+                        expression: Box::new(super::expression_list(expression).unwrap().1),
+                    }))
+                );
+            }
+
+            assert!(super::call_expression(" test()[ ").is_incomplete());
+
+            // Chained field member
+            {
+                let base = "test()";
+                let name = "test";
+
+                let input = format!(" {}.{} ", base, name);
+
+                assert_eq!(
+                    super::call_expression(&input),
+                    IResult::Done(" ", Expression::FieldMemberExpression(FieldMemberExpression {
+                        base: Box::new(super::call_expression(base).unwrap().1),
+                        name: super::property_identifier(name).unwrap().1,
+                    }))
+                );
+            }
+
+            assert!(super::call_expression(" test. ").is_incomplete());
+        }
+
+        #[test]
         fn member_expression() {
             assert!(super::member_expression("").is_incomplete());
 

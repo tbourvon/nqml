@@ -98,7 +98,7 @@ pub mod parsing {
         take_while_s!(is_whitespace) >>
         identifier: recognize!(do_parse!(
             xid_start >>
-            many0!(xid_continue) >>
+            many0!(complete!(xid_continue)) >>
             ()
         )) >>
         (identifier)

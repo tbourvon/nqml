@@ -225,10 +225,10 @@ pub mod parsing {
                     fold: fold_many0!(
                         do_parse!(
                             operator: alt!(
-                                keyword!($op1)
+                                complete!(keyword!($op1))
                                 $(
                                     | 
-                                    keyword!($ops)
+                                    complete!(keyword!($ops))
                                 )*
                             ) >>
                             expr: $next >>
@@ -261,7 +261,7 @@ pub mod parsing {
             first: assignment_expression >>
             fold: fold_many0!(
                 do_parse!(
-                    keyword!(",") >>
+                    complete!(keyword!(",")) >>
                     expr: assignment_expression >>
                     (expr)
                 ),
@@ -282,7 +282,7 @@ pub mod parsing {
             first: assignment_expression_not_in >>
             fold: fold_many0!(
                 do_parse!(
-                    keyword!(",") >>
+                    complete!(keyword!(",")) >>
                     expr: assignment_expression_not_in >>
                     (expr)
                 ),
@@ -497,21 +497,21 @@ pub mod parsing {
             fold: fold_many0!(
                 alt!(
                     do_parse!(
-                        keyword!("(") >>
+                        complete!(keyword!("(")) >>
                         arguments: opt!(argument_list) >>
                         keyword!(")") >>
                         (Some(arguments), None, None)
                     )
                     |
                     do_parse!(
-                        keyword!("[") >>
+                        complete!(keyword!("[")) >>
                         expression: expression_list >>
                         keyword!("]") >>
                         (None, Some(expression), None)
                     )
                     |
                     do_parse!(
-                        keyword!(".") >>
+                        complete!(keyword!(".")) >>
                         name: property_identifier >>
                         (None, None, Some(name))
                     )
@@ -563,14 +563,14 @@ pub mod parsing {
                 fold: fold_many0!(
                     alt!(
                         do_parse!(
-                            keyword!("[") >>
+                            complete!(keyword!("[")) >>
                             expression: expression_list >>
                             keyword!("]") >>
                             (Some(expression), None)
                         )
                         |
                         do_parse!(
-                            keyword!(".") >>
+                            complete!(keyword!(".")) >>
                             name: property_identifier >>
                             (None, Some(name))
                         )

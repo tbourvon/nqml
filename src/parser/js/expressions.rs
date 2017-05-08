@@ -766,6 +766,81 @@ pub mod parsing {
         use super::*;
 
         #[test]
+        fn member_expression() {
+            assert!(super::member_expression("").is_incomplete());
+
+            // New member expression
+            {
+                let base = "Test";
+
+                let input = format!(" new {} () ", base);
+
+                assert_eq!(
+                    super::member_expression(&input),
+                    IResult::Done(" ", Expression::NewMemberExpression(NewMemberExpression {
+                        base: Box::new(super::member_expression(base).unwrap().1),
+                        arguments: None,
+                    }))
+                );
+            }
+
+            {
+                let base = "Test";
+                let arguments = "test";
+
+                let input = format!(" new {} ({}) ", base, arguments);
+
+                assert_eq!(
+                    super::member_expression(&input),
+                    IResult::Done(" ", Expression::NewMemberExpression(NewMemberExpression {
+                        base: Box::new(super::member_expression(base).unwrap().1),
+                        arguments: Some(super::argument_list(arguments).unwrap().1),
+                    }))
+                );
+            }
+
+            assert!(super::member_expression(" new ").is_incomplete());
+            assert!(super::member_expression(" new Test ").is_incomplete());
+            assert!(super::member_expression(" new Test ( ").is_incomplete());
+
+            // Array member expression
+            {
+                let base = "test";
+                let expression = "test";
+
+                let input = format!(" {}[{}] ", base, expression);
+
+                assert_eq!(
+                    super::member_expression(&input),
+                    IResult::Done(" ", Expression::ArrayMemberExpression(ArrayMemberExpression {
+                        base: Box::new(super::member_expression(base).unwrap().1),
+                        expression: Box::new(super::expression_list(expression).unwrap().1),
+                    }))
+                );
+            }
+
+            assert!(super::member_expression(" test[ ").is_incomplete());
+
+            // Field member expression
+            {
+                let base = "test";
+                let name = "test";
+
+                let input = format!(" {}.{} ", base, name);
+
+                assert_eq!(
+                    super::member_expression(&input),
+                    IResult::Done(" ", Expression::FieldMemberExpression(FieldMemberExpression {
+                        base: Box::new(super::member_expression(base).unwrap().1),
+                        name: super::property_identifier(name).unwrap().1,
+                    }))
+                );
+            }
+
+            assert!(super::member_expression(" test. ").is_incomplete());
+        }
+
+        #[test]
         fn property_assignment() {
             assert!(super::property_assignment("").is_incomplete());
 

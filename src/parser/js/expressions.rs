@@ -170,7 +170,7 @@ pub enum PropertyAssignment<'a> {
 #[derive(Debug, PartialEq)]
 pub struct PropertyNameAndValue<'a> {
     pub name: PropertyName<'a>,
-    pub value: Expression<'a>,
+    pub value: Box<Expression<'a>>,
 }
 
 #[derive(Debug, PartialEq)]
@@ -729,7 +729,7 @@ pub mod parsing {
             value: assignment_expression >>
             (PropertyAssignment::PropertyNameAndValue(PropertyNameAndValue {
                 name: name,
-                value: value,
+                value: Box::new(value),
             }))
         )
     ));

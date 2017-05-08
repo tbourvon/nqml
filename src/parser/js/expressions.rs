@@ -808,6 +808,9 @@ pub mod parsing {
             assert!(super::property_assignment(" get test ( ").is_incomplete());
             assert!(super::property_assignment(" get test () { ").is_incomplete());
 
+            assert_eq!(super::property_assignment(" get test ( {} "), IResult::Error(ErrorKind::Alt));
+            assert_eq!(super::property_assignment(" get () {} "), IResult::Error(ErrorKind::Alt));
+
             // Setter
             {
                 let name = "test";
@@ -848,6 +851,9 @@ pub mod parsing {
             assert!(super::property_assignment(" set test ( ").is_incomplete());
             assert!(super::property_assignment(" set test () { ").is_incomplete());
 
+            assert_eq!(super::property_assignment(" set test ( {} "), IResult::Error(ErrorKind::Alt));
+            assert_eq!(super::property_assignment(" set () {} "), IResult::Error(ErrorKind::Alt));
+
             // Name and value
             {
                 let name = "test";
@@ -866,6 +872,8 @@ pub mod parsing {
 
             assert!(super::property_assignment(" test ").is_incomplete());
             assert!(super::property_assignment(" test: ").is_incomplete());
+
+            assert_eq!(super::property_assignment(" : "), IResult::Error(ErrorKind::Alt));
         }
 
         #[test]

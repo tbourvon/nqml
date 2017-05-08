@@ -766,6 +766,109 @@ pub mod parsing {
         use super::*;
 
         #[test]
+        fn property_assignment() {
+            assert!(super::property_assignment("").is_incomplete());
+
+            // Getter
+            {
+                let name = "test";
+
+                let input = format!(" get {} () {{}} ", name);
+
+                assert_eq!(
+                    super::property_assignment(&input),
+                    IResult::Done(" ", PropertyAssignment::PropertyGetterSetter(PropertyGetterSetter {
+                        name: super::property_name(name).unwrap().1,
+                        getter_setter_type: PropertyGetterSetterType::Getter,
+                        formals: None,
+                        function_body: None,
+                    }))
+                );
+            }
+
+            {
+                let name = "test";
+                let function_body = ";;";
+
+                let input = format!(" get {} () {{{}}} ", name, function_body);
+
+                assert_eq!(
+                    super::property_assignment(&input),
+                    IResult::Done(" ", PropertyAssignment::PropertyGetterSetter(PropertyGetterSetter {
+                        name: super::property_name(name).unwrap().1,
+                        getter_setter_type: PropertyGetterSetterType::Getter,
+                        formals: None,
+                        function_body: Some(super::function_body(function_body).unwrap().1),
+                    }))
+                );
+            }
+
+            assert!(super::property_assignment(" get ").is_incomplete());
+            assert!(super::property_assignment(" get test ").is_incomplete());
+            assert!(super::property_assignment(" get test ( ").is_incomplete());
+            assert!(super::property_assignment(" get test () { ").is_incomplete());
+
+            // Setter
+            {
+                let name = "test";
+
+                let input = format!(" set {} () {{}} ", name);
+
+                assert_eq!(
+                    super::property_assignment(&input),
+                    IResult::Done(" ", PropertyAssignment::PropertyGetterSetter(PropertyGetterSetter {
+                        name: super::property_name(name).unwrap().1,
+                        getter_setter_type: PropertyGetterSetterType::Setter,
+                        formals: None,
+                        function_body: None,
+                    }))
+                );
+            }
+
+            {
+                let name = "test";
+                let formals = "test";
+                let function_body = ";;";
+
+                let input = format!(" set {} ({}) {{{}}} ", name, formals, function_body);
+
+                assert_eq!(
+                    super::property_assignment(&input),
+                    IResult::Done(" ", PropertyAssignment::PropertyGetterSetter(PropertyGetterSetter {
+                        name: super::property_name(name).unwrap().1,
+                        getter_setter_type: PropertyGetterSetterType::Setter,
+                        formals: Some(super::formal_parameter_list(formals).unwrap().1),
+                        function_body: Some(super::function_body(function_body).unwrap().1),
+                    }))
+                );
+            }
+
+            assert!(super::property_assignment(" set ").is_incomplete());
+            assert!(super::property_assignment(" set test ").is_incomplete());
+            assert!(super::property_assignment(" set test ( ").is_incomplete());
+            assert!(super::property_assignment(" set test () { ").is_incomplete());
+
+            // Name and value
+            {
+                let name = "test";
+                let value = "true";
+
+                let input = format!(" {}: {} ", name, value);
+
+                assert_eq!(
+                    super::property_assignment(&input),
+                    IResult::Done(" ", PropertyAssignment::PropertyNameAndValue(PropertyNameAndValue {
+                        name: super::property_name(name).unwrap().1,
+                        value: Box::new(super::assignment_expression(value).unwrap().1),
+                    }))
+                );
+            }
+
+            assert!(super::property_assignment(" test ").is_incomplete());
+            assert!(super::property_assignment(" test: ").is_incomplete());
+        }
+
+        #[test]
         fn primary_expression() {
             assert!(super::primary_expression("").is_incomplete());
 

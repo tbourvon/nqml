@@ -766,6 +766,61 @@ pub mod parsing {
         use super::*;
 
         #[test]
+        fn postfix_expression() {
+            assert!(super::postfix_expression("").is_incomplete());
+
+            // ++
+            {
+                let left_hand_side_expression = "test";
+
+                let input = format!(" {}++ ", left_hand_side_expression);
+
+                assert_eq!(
+                    super::postfix_expression(&input),
+                    IResult::Done(" ", Expression::PostIncrementExpression(PostIncrementExpression(Box::new(
+                        super::left_hand_side_expression(left_hand_side_expression).unwrap().1
+                    ))))
+                );
+            }
+
+            {
+                let left_hand_side_expression = "true";
+
+                let input = format!(" {}\n++ ", left_hand_side_expression);
+
+                assert_eq!(
+                    super::postfix_expression(&input),
+                    IResult::Done("\n++ ", super::left_hand_side_expression(left_hand_side_expression).unwrap().1)
+                );
+            }
+
+            // --
+            {
+                let left_hand_side_expression = "test";
+
+                let input = format!(" {}-- ", left_hand_side_expression);
+
+                assert_eq!(
+                    super::postfix_expression(&input),
+                    IResult::Done(" ", Expression::PostDecrementExpression(PostDecrementExpression(Box::new(
+                        super::left_hand_side_expression(left_hand_side_expression).unwrap().1
+                    ))))
+                );
+            }
+
+            {
+                let left_hand_side_expression = "true";
+
+                let input = format!(" {}\n-- ", left_hand_side_expression);
+
+                assert_eq!(
+                    super::postfix_expression(&input),
+                    IResult::Done("\n-- ", super::left_hand_side_expression(left_hand_side_expression).unwrap().1)
+                );
+            }
+        }
+
+        #[test]
         fn new_expression() {
             assert!(super::new_expression("").is_incomplete());
 

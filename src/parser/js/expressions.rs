@@ -766,6 +766,26 @@ pub mod parsing {
         use super::*;
 
         #[test]
+        fn new_expression() {
+            assert!(super::new_expression("").is_incomplete());
+
+            {
+                let member_expression = "test";
+
+                let input = format!(" new {} ", member_expression);
+
+                assert_eq!(
+                    super::new_expression(&input),
+                    IResult::Done(" ", Expression::NewExpression(NewExpression(Box::new(
+                        super::member_expression(member_expression).unwrap().1
+                    ))))
+                );
+            }
+
+            assert!(super::new_expression(" new ").is_incomplete());
+        }
+
+        #[test]
         fn call_expression() {
             assert!(super::call_expression("").is_incomplete());
 

@@ -766,6 +766,68 @@ pub mod parsing {
         use super::*;
 
         #[test]
+        fn conditional_expression() {
+            assert!(super::conditional_expression("").is_incomplete());
+
+            {
+                let logical_or_expression = "test";
+                let assignment_expression_true = "test";
+                let assignment_expression_false = "test";
+
+                let input = format!(" {} ? {} : {} ", logical_or_expression, assignment_expression_true, assignment_expression_false);
+
+                assert_eq!(
+                    super::conditional_expression(&input),
+                    IResult::Done(" ", Expression::ConditionalExpression(ConditionalExpression {
+                        expression: Box::new(
+                            super::logical_or_expression(logical_or_expression).unwrap().1
+                        ),
+                        ok: Box::new(
+                            super::assignment_expression(assignment_expression_true).unwrap().1
+                        ),
+                        ko: Box::new(
+                            super::assignment_expression(assignment_expression_false).unwrap().1
+                        ),
+                    }))
+                );
+            }
+
+            assert!(super::conditional_expression(" test ? ").is_incomplete());
+            assert!(super::conditional_expression(" test ? test : ").is_incomplete());
+        }
+
+        #[test]
+        fn conditional_expression_not_in() {
+            assert!(super::conditional_expression_not_in("").is_incomplete());
+
+            {
+                let logical_or_expression_not_in = "test";
+                let assignment_expression_true_not_in = "test";
+                let assignment_expression_false_not_in = "test";
+
+                let input = format!(" {} ? {} : {} ", logical_or_expression_not_in, assignment_expression_true_not_in, assignment_expression_false_not_in);
+
+                assert_eq!(
+                    super::conditional_expression_not_in(&input),
+                    IResult::Done(" ", Expression::ConditionalExpression(ConditionalExpression {
+                        expression: Box::new(
+                            super::logical_or_expression_not_in(logical_or_expression_not_in).unwrap().1
+                        ),
+                        ok: Box::new(
+                            super::logical_or_expression_not_in(assignment_expression_true_not_in).unwrap().1
+                        ),
+                        ko: Box::new(
+                            super::logical_or_expression_not_in(assignment_expression_false_not_in).unwrap().1
+                        ),
+                    }))
+                );
+            }
+
+            assert!(super::conditional_expression_not_in(" test ? ").is_incomplete());
+            assert!(super::conditional_expression_not_in(" test ? test : ").is_incomplete());
+        }
+
+        #[test]
         fn binary_op() {
             assert!(super::logical_or_expression("").is_incomplete());
 

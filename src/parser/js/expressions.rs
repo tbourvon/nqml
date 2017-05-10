@@ -766,6 +766,62 @@ pub mod parsing {
         use super::*;
 
         #[test]
+        fn assignment_expression() {
+            assert!(super::assignment_expression("").is_incomplete());
+
+            {
+                let left_hand_side_expression = "test";
+                let operator = "=";
+                let assignment_expression = "test";
+
+                let input = format!(" {} {} {} ", left_hand_side_expression, operator, assignment_expression);
+
+                assert_eq!(
+                    super::assignment_expression(&input),
+                    IResult::Done(" ", Expression::BinaryExpression(BinaryExpression {
+                        left: Box::new(
+                            super::left_hand_side_expression(left_hand_side_expression).unwrap().1
+                        ),
+                        operator: super::assignment_operator(operator).unwrap().1,
+                        right: Box::new(
+                            super::assignment_expression(assignment_expression).unwrap().1
+                        ),
+                    }))
+                );
+            }
+
+            assert!(super::assignment_expression(" test = ").is_incomplete());
+        }
+
+        #[test]
+        fn assignment_expression_not_in() {
+            assert!(super::assignment_expression_not_in("").is_incomplete());
+
+            {
+                let left_hand_side_expression = "test";
+                let operator = "=";
+                let assignment_expression_not_in = "test";
+
+                let input = format!(" {} {} {} ", left_hand_side_expression, operator, assignment_expression_not_in);
+
+                assert_eq!(
+                    super::assignment_expression(&input),
+                    IResult::Done(" ", Expression::BinaryExpression(BinaryExpression {
+                        left: Box::new(
+                            super::left_hand_side_expression(left_hand_side_expression).unwrap().1
+                        ),
+                        operator: super::assignment_operator(operator).unwrap().1,
+                        right: Box::new(
+                            super::assignment_expression_not_in(assignment_expression_not_in).unwrap().1
+                        ),
+                    }))
+                );
+            }
+
+            assert!(super::assignment_expression_not_in(" test = ").is_incomplete());
+        }
+
+        #[test]
         fn conditional_expression() {
             assert!(super::conditional_expression("").is_incomplete());
 

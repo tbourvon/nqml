@@ -889,21 +889,21 @@ pub mod parsing {
 
             // We test one binop for the others
             {
-                let left_logical_and_expression = "test";
+                let logical_or_expression = "test";
                 let operator = "||";
-                let right_logical_and_expression = "test";
+                let logical_and_expression = "test";
 
-                let input = format!(" {} {} {} ", left_logical_and_expression, operator, right_logical_and_expression);
+                let input = format!(" {} {} {} ", logical_or_expression, operator, logical_and_expression);
 
                 assert_eq!(
                     super::logical_or_expression(&input),
                     IResult::Done(" ", Expression::BinaryExpression(BinaryExpression {
                         left: Box::new(
-                            super::logical_and_expression(left_logical_and_expression).unwrap().1
+                            super::logical_or_expression(logical_or_expression).unwrap().1
                         ),
                         operator: operator,
                         right: Box::new(
-                            super::logical_and_expression(right_logical_and_expression).unwrap().1
+                            super::logical_and_expression(logical_and_expression).unwrap().1
                         ),
                     }))
                 );

@@ -766,6 +766,58 @@ pub mod parsing {
         use super::*;
 
         #[test]
+        fn expression_list() {
+            assert!(super::expression_list("").is_incomplete());
+
+            {
+                let expression_list = "test";
+                let assignment_expression = "test";
+
+                let input = format!(" {}, {} ", expression_list, assignment_expression);
+
+                assert_eq!(
+                    super::expression_list(&input),
+                    IResult::Done(" ", Expression::ExpressionList(ExpressionList {
+                        left: Box::new(
+                            super::expression_list(expression_list).unwrap().1
+                        ),
+                        right: Box::new(
+                            super::assignment_expression(assignment_expression).unwrap().1
+                        ),
+                    }))
+                );
+            }
+
+            assert!(super::expression_list(" test, ").is_incomplete());
+        }
+
+        #[test]
+        fn expression_list_not_in() {
+            assert!(super::expression_list_not_in("").is_incomplete());
+
+            {
+                let expression_list_not_in = "test";
+                let assignment_expression_not_in = "test";
+
+                let input = format!(" {}, {} ", expression_list_not_in, assignment_expression_not_in);
+
+                assert_eq!(
+                    super::expression_list_not_in(&input),
+                    IResult::Done(" ", Expression::ExpressionList(ExpressionList {
+                        left: Box::new(
+                            super::expression_list_not_in(expression_list_not_in).unwrap().1
+                        ),
+                        right: Box::new(
+                            super::assignment_expression_not_in(assignment_expression_not_in).unwrap().1
+                        ),
+                    }))
+                );
+            }
+
+            assert!(super::expression_list_not_in(" test, ").is_incomplete());
+        }
+
+        #[test]
         fn assignment_expression() {
             assert!(super::assignment_expression("").is_incomplete());
 

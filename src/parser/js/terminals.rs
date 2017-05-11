@@ -215,13 +215,13 @@ pub mod parsing {
     ));
 
     named!(pub automatic_semicolon<&str, &str>, alt!(
+        eof
+        |
         keyword!(";")
         |
         peek!(line_terminator)
         |
         peek!(keyword!("}"))
-        |
-        eof
     ));
 
     named!(eof<&str, &str>, do_parse!(

@@ -6,7 +6,7 @@ pub struct StringLiteral<'a>(pub &'a str);
 
 pub mod parsing {
 
-    use nom::{IResult, digit, hex_digit, oct_digit};
+    use nom::{digit, hex_digit, oct_digit};
     use parser::helpers::parsing::*;
     use parser::js::terminals::*;
 
@@ -224,9 +224,11 @@ pub mod parsing {
         eof
     ));
 
-    fn eof(i: &str) -> IResult<&str, &str> {
-        eof!(i,)
-    }
+    named!(eof<&str, &str>, do_parse!(
+        take_while_s!(is_whitespace) >>
+        eof: eof!() >>
+        (eof)
+    ));
 
     named!(pub line_terminator<&str, &str>, alt!(
         tag_s!("\r\n")
@@ -240,7 +242,7 @@ pub mod parsing {
 
     #[cfg(test)]
     mod tests {
-        use nom::{ErrorKind};
+        use nom::{ErrorKind, IResult};
         use super::*;
 
         #[test]

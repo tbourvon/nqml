@@ -802,6 +802,7 @@ pub mod parsing {
             assert!(super::if_statement(" if (test) ; else ").is_incomplete());
 
             assert_eq!(super::if_statement(" if {} "), IResult::Error(ErrorKind::Tag));
+            assert_eq!(super::if_statement(" if (test) else {} "), IResult::Error(ErrorKind::Alt));
         }
     }
 

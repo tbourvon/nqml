@@ -685,6 +685,78 @@ pub mod parsing {
 
             assert!(super::variable_statement(" var ").is_incomplete());
         }
+
+        #[test]
+        fn variable_declaration() {
+            assert!(super::variable_declaration("", VariableDeclarationKind::Var).is_incomplete());
+
+            {
+                let name = "test";
+
+                let input = format!(" {} ", name);
+
+                assert_eq!(
+                    super::variable_declaration(&input, VariableDeclarationKind::Var),
+                    IResult::Done(" ", VariableDeclaration {
+                        name: super::js_identifier(name).unwrap().1,
+                        expression: None,
+                        kind: VariableDeclarationKind::Var,
+                    })
+                );
+            }
+
+            {
+                let name = "test";
+                let initialiser = "= true";
+
+                let input = format!(" {} {} ", name, initialiser);
+
+                assert_eq!(
+                    super::variable_declaration(&input, VariableDeclarationKind::Var),
+                    IResult::Done(" ", VariableDeclaration {
+                        name: super::js_identifier(name).unwrap().1,
+                        expression: Some(Box::new(super::initialiser(initialiser).unwrap().1)),
+                        kind: VariableDeclarationKind::Var,
+                    })
+                );
+            }
+        }
+
+        #[test]
+        fn variable_declaration_not_in() {
+            assert!(super::variable_declaration_not_in("", VariableDeclarationKind::Var).is_incomplete());
+
+            {
+                let name = "test";
+
+                let input = format!(" {} ", name);
+
+                assert_eq!(
+                    super::variable_declaration_not_in(&input, VariableDeclarationKind::Var),
+                    IResult::Done(" ", VariableDeclaration {
+                        name: super::js_identifier(name).unwrap().1,
+                        expression: None,
+                        kind: VariableDeclarationKind::Var,
+                    })
+                );
+            }
+
+            {
+                let name = "test";
+                let initialiser_not_in = "= true";
+
+                let input = format!(" {} {} ", name, initialiser_not_in);
+
+                assert_eq!(
+                    super::variable_declaration_not_in(&input, VariableDeclarationKind::Var),
+                    IResult::Done(" ", VariableDeclaration {
+                        name: super::js_identifier(name).unwrap().1,
+                        expression: Some(Box::new(super::initialiser_not_in(initialiser_not_in).unwrap().1)),
+                        kind: VariableDeclarationKind::Var,
+                    })
+                );
+            }
+        }
     }
 
 }

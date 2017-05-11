@@ -664,6 +664,27 @@ pub mod parsing {
 
             assert!(super::block(" { ").is_incomplete());
         }
+
+        #[test]
+        fn variable_statement() {
+            assert!(super::variable_statement("").is_incomplete());
+
+            {
+                let kind = "var";
+                let declarations = "test";
+
+                let input = format!(" {} {} ", kind, declarations);
+
+                assert_eq!(
+                    super::variable_statement(&input),
+                    IResult::Done("", VariableStatement {
+                        declarations: super::variable_declaration_list(declarations, super::variable_declaration_kind(kind).unwrap().1).unwrap().1,
+                    })
+                );
+            }
+
+            assert!(super::variable_statement(" var ").is_incomplete());
+        }
     }
 
 }

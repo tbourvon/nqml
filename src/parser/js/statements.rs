@@ -804,6 +804,211 @@ pub mod parsing {
             assert_eq!(super::if_statement(" if {} "), IResult::Error(ErrorKind::Tag));
             assert_eq!(super::if_statement(" if (test) else {} "), IResult::Error(ErrorKind::Alt));
         }
+
+        #[test]
+        fn iteration_statement() {
+            assert!(super::iteration_statement("").is_incomplete());
+
+            // do while
+            {
+                let statement = "{}";
+                let expression = "test";
+
+                let input = format!(" do {} while ({}) ", statement, expression);
+
+                assert_eq!(
+                    super::iteration_statement(&input),
+                    IResult::Done("", IterationStatement::DoWhileStatement(DoWhileStatement {
+                        statement: Box::new(super::statement(statement).unwrap().1),
+                        expression: Box::new(super::expression_list(expression).unwrap().1),
+                    }))
+                );
+            }
+
+            assert!(super::iteration_statement(" do ").is_incomplete());
+            assert!(super::iteration_statement(" do ; ").is_incomplete());
+            assert!(super::iteration_statement(" do ; while ").is_incomplete());
+            assert!(super::iteration_statement(" do ; while ( ").is_incomplete());
+
+            // while
+            {
+                let expression = "test";
+                let statement = "{}";
+
+                let input = format!(" while ({}) {} ", expression, statement);
+
+                assert_eq!(
+                    super::iteration_statement(&input),
+                    IResult::Done(" ", IterationStatement::WhileStatement(WhileStatement {
+                        expression: Box::new(super::expression_list(expression).unwrap().1),
+                        statement: Box::new(super::statement(statement).unwrap().1),
+                    }))
+                );
+            }
+
+            assert!(super::iteration_statement(" while ").is_incomplete());
+            assert!(super::iteration_statement(" while ( ").is_incomplete());
+            assert!(super::iteration_statement(" while (test) ").is_incomplete());
+
+            assert_eq!(super::iteration_statement(" while {} "), IResult::Error(ErrorKind::Alt));
+
+            // local for
+            {
+                let declarations = "test";
+                let statement = "{}";
+
+                let input = format!(" for (var {};;) {} ", declarations, statement);
+
+                assert_eq!(
+                    super::iteration_statement(&input),
+                    IResult::Done(" ", IterationStatement::LocalForStatement(LocalForStatement {
+                        declarations: super::variable_declaration_list_not_in(declarations, VariableDeclarationKind::Var).unwrap().1,
+                        condition: None,
+                        expression: None,
+                        statement: Box::new(super::statement(statement).unwrap().1),
+                    }))
+                );
+            }
+
+            {
+                let declarations = "test";
+                let condition = "test";
+                let expression = "test";
+                let statement = "{}";
+
+                let input = format!(" for (var {};{};{}) {} ", declarations, condition, expression, statement);
+
+                assert_eq!(
+                    super::iteration_statement(&input),
+                    IResult::Done(" ", IterationStatement::LocalForStatement(LocalForStatement {
+                        declarations: super::variable_declaration_list_not_in(declarations, VariableDeclarationKind::Var).unwrap().1,
+                        condition: Some(Box::new(super::expression_list(condition).unwrap().1)),
+                        expression: Some(Box::new(super::expression_list(expression).unwrap().1)),
+                        statement: Box::new(super::statement(statement).unwrap().1),
+                    }))
+                );
+            }
+
+            assert!(super::iteration_statement(" for ").is_incomplete());
+            assert!(super::iteration_statement(" for ( ").is_incomplete());
+            assert!(super::iteration_statement(" for (var ").is_incomplete());
+            assert!(super::iteration_statement(" for (var test; ").is_incomplete());
+            assert!(super::iteration_statement(" for (var test;; ").is_incomplete());
+            assert!(super::iteration_statement(" for (var test;;) ").is_incomplete());
+
+            assert_eq!(super::iteration_statement(" for {} "), IResult::Error(ErrorKind::Alt));
+            assert_eq!(super::iteration_statement(" for (var) {} "), IResult::Error(ErrorKind::Alt));
+            assert_eq!(super::iteration_statement(" for (var test) {} "), IResult::Error(ErrorKind::Alt));
+            assert_eq!(super::iteration_statement(" for (var test;) {} "), IResult::Error(ErrorKind::Alt));
+
+            // for
+            {
+                let statement = "{}";
+
+                let input = format!(" for (;;) {} ", statement);
+
+                assert_eq!(
+                    super::iteration_statement(&input),
+                    IResult::Done(" ", IterationStatement::ForStatement(ForStatement {
+                        initialiser: None,
+                        condition: None,
+                        expression: None,
+                        statement: Box::new(super::statement(statement).unwrap().1),
+                    }))
+                );
+            }
+
+            {
+                let initialiser = "test";
+                let condition = "test";
+                let expression = "test";
+                let statement = "{}";
+
+                let input = format!(" for ({};{};{}) {} ", initialiser, condition, expression, statement);
+
+                assert_eq!(
+                    super::iteration_statement(&input),
+                    IResult::Done(" ", IterationStatement::ForStatement(ForStatement {
+                        initialiser: Some(Box::new(super::expression_list_not_in(initialiser).unwrap().1)),
+                        condition: Some(Box::new(super::expression_list(condition).unwrap().1)),
+                        expression: Some(Box::new(super::expression_list(expression).unwrap().1)),
+                        statement: Box::new(super::statement(statement).unwrap().1),
+                    }))
+                );
+            }
+
+            assert!(super::iteration_statement(" for ").is_incomplete());
+            assert!(super::iteration_statement(" for ( ").is_incomplete());
+            assert!(super::iteration_statement(" for (; ").is_incomplete());
+            assert!(super::iteration_statement(" for (;; ").is_incomplete());
+            assert!(super::iteration_statement(" for (;;) ").is_incomplete());
+
+            assert_eq!(super::iteration_statement(" for {} "), IResult::Error(ErrorKind::Alt));
+            assert_eq!(super::iteration_statement(" for () {} "), IResult::Error(ErrorKind::Alt));
+            assert_eq!(super::iteration_statement(" for (;) {} "), IResult::Error(ErrorKind::Alt));
+
+            // local for each
+            {
+                let declaration = "test";
+                let expression = "test";
+                let statement = "{}";
+
+                let input = format!(" for (var {} in {}) {} ", declaration, expression, statement);
+
+                assert_eq!(
+                    super::iteration_statement(&input),
+                    IResult::Done(" ", IterationStatement::LocalForEachStatement(LocalForEachStatement {
+                        declaration: super::variable_declaration_not_in(declaration, VariableDeclarationKind::Var).unwrap().1,
+                        expression: Box::new(super::expression_list(expression).unwrap().1),
+                        statement: Box::new(super::statement(statement).unwrap().1),
+                    }))
+                );
+            }
+
+            assert!(super::iteration_statement(" for ").is_incomplete());
+            assert!(super::iteration_statement(" for ( ").is_incomplete());
+            assert!(super::iteration_statement(" for (var ").is_incomplete());
+            assert!(super::iteration_statement(" for (var test in ").is_incomplete());
+            assert!(super::iteration_statement(" for (var test in test ").is_incomplete());
+            assert!(super::iteration_statement(" for (var test in test) ").is_incomplete());
+
+            assert_eq!(super::iteration_statement(" for {} "), IResult::Error(ErrorKind::Alt));
+            assert_eq!(super::iteration_statement(" for () {} "), IResult::Error(ErrorKind::Alt));
+            assert_eq!(super::iteration_statement(" for (var) {} "), IResult::Error(ErrorKind::Alt));
+            assert_eq!(super::iteration_statement(" for (var test) {} "), IResult::Error(ErrorKind::Alt));
+            assert_eq!(super::iteration_statement(" for (var test in) {} "), IResult::Error(ErrorKind::Alt));
+
+            // for each
+            {
+                let initialiser = "test";
+                let expression = "test";
+                let statement = "{}";
+
+                let input = format!(" for ({} in {}) {} ", initialiser, expression, statement);
+
+                assert_eq!(
+                    super::iteration_statement(&input),
+                    IResult::Done(" ", IterationStatement::ForEachStatement(ForEachStatement {
+                        initialiser: Box::new(super::left_hand_side_expression(initialiser).unwrap().1),
+                        expression: Box::new(super::expression_list(expression).unwrap().1),
+                        statement: Box::new(super::statement(statement).unwrap().1),
+                    }))
+                );
+            }
+
+            assert!(super::iteration_statement(" for ").is_incomplete());
+            assert!(super::iteration_statement(" for ( ").is_incomplete());
+            assert!(super::iteration_statement(" for (test ").is_incomplete());
+            assert!(super::iteration_statement(" for (test in ").is_incomplete());
+            assert!(super::iteration_statement(" for (test in test ").is_incomplete());
+            assert!(super::iteration_statement(" for (test in test) ").is_incomplete());
+
+            assert_eq!(super::iteration_statement(" for {} "), IResult::Error(ErrorKind::Alt));
+            assert_eq!(super::iteration_statement(" for () {} "), IResult::Error(ErrorKind::Alt));
+            assert_eq!(super::iteration_statement(" for (test) {} "), IResult::Error(ErrorKind::Alt));
+            assert_eq!(super::iteration_statement(" for (test in) {} "), IResult::Error(ErrorKind::Alt));
+        }
+
     }
 
 }

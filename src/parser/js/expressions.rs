@@ -902,6 +902,8 @@ pub mod parsing {
 
             assert!(super::conditional_expression(" test ? ").is_incomplete());
             assert!(super::conditional_expression(" test ? test : ").is_incomplete());
+
+            assert_eq!(super::conditional_expression(" true ? : "), IResult::Done(" ? : ", Expression::TrueLiteral(TrueLiteral)));
         }
 
         #[test]
@@ -933,6 +935,8 @@ pub mod parsing {
 
             assert!(super::conditional_expression_not_in(" test ? ").is_incomplete());
             assert!(super::conditional_expression_not_in(" test ? test : ").is_incomplete());
+
+            assert_eq!(super::conditional_expression_not_in(" true ? : "), IResult::Done(" ? : ", Expression::TrueLiteral(TrueLiteral)));
         }
 
         #[test]

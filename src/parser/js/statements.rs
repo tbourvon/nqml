@@ -636,6 +636,7 @@ pub mod parsing {
 
     #[cfg(test)]
     mod tests {
+        use nom::ErrorKind;
         use super::*;
 
         #[test]
@@ -756,6 +757,51 @@ pub mod parsing {
                     })
                 );
             }
+        }
+
+        #[test]
+        fn if_statement() {
+            assert!(super::if_statement("").is_incomplete());
+
+            {
+                let expression = "test";
+                let ok = "{}";
+
+                let input = format!(" if ({}) {} ", expression, ok);
+
+                assert_eq!(
+                    super::if_statement(&input),
+                    IResult::Done(" ", IfStatement {
+                        expression: Box::new(super::expression_list(expression).unwrap().1),
+                        ok: Box::new(super::statement(ok).unwrap().1),
+                        ko: None,
+                    })
+                );
+            }
+
+            {
+                let expression = "test";
+                let ok = "{}";
+                let ko = "{}";
+
+                let input = format!(" if ({}) {} else {} ", expression, ok, ko);
+
+                assert_eq!(
+                    super::if_statement(&input),
+                    IResult::Done(" ", IfStatement {
+                        expression: Box::new(super::expression_list(expression).unwrap().1),
+                        ok: Box::new(super::statement(ok).unwrap().1),
+                        ko: Some(Box::new(super::statement(ko).unwrap().1)),
+                    })
+                );
+            }
+
+            assert!(super::if_statement(" if ").is_incomplete());
+            assert!(super::if_statement(" if ( ").is_incomplete());
+            assert!(super::if_statement(" if (test) ").is_incomplete());
+            assert!(super::if_statement(" if (test) ; else ").is_incomplete());
+
+            assert_eq!(super::if_statement(" if {} "), IResult::Error(ErrorKind::Tag));
         }
     }
 

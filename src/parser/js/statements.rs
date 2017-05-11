@@ -634,4 +634,36 @@ pub mod parsing {
         (DebuggerStatement)
     ));
 
+    #[cfg(test)]
+    mod tests {
+        use super::*;
+
+        #[test]
+        fn block() {
+            assert!(super::block("").is_incomplete());
+
+            assert_eq!(
+                super::block(" {} "),
+                IResult::Done(" ", Block {
+                    statements: None,
+                })
+            );
+
+            {
+                let statements = ";;";
+
+                let input = format!(" {{{}}} ", statements);
+
+                assert_eq!(
+                    super::block(&input),
+                    IResult::Done(" ", Block {
+                        statements: Some(super::statement_list(statements).unwrap().1),
+                    })
+                );
+            }
+
+            assert!(super::block(" { ").is_incomplete());
+        }
+    }
+
 }

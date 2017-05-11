@@ -340,9 +340,9 @@ pub mod parsing {
         keyword!("(") >>
         expression: expression_list >>
         keyword!(")") >>
-        ok:statement >>
+        ok: statement >>
         ko: opt!(do_parse!(
-            keyword!("else") >>
+            complete!(keyword!("else")) >>
             statement: statement >>
             (Box::new(statement))
         )) >>

@@ -450,13 +450,13 @@ pub mod parsing {
     ));
 
     named!(initialiser<&str, Expression>, do_parse!(
-        keyword!("=") >>
+        complete!(keyword!("=")) >>
         expression: assignment_expression >>
         (expression)
     ));
 
     named!(initialiser_not_in<&str, Expression>, do_parse!(
-        keyword!("=") >>
+        complete!(keyword!("=")) >>
         expression: assignment_expression_not_in >>
         (expression)
     ));

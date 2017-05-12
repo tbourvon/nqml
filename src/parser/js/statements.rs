@@ -1140,6 +1140,32 @@ pub mod parsing {
 
             assert!(super::labelled_statement(" test: ").is_incomplete());
         }
+
+        #[test]
+        fn switch_statement() {
+            assert!(super::switch_statement("").is_incomplete());
+
+            {
+                let expression = "test";
+                let block = "{}";
+
+                let input = format!(" switch ({}) {} ", expression, block);
+
+                assert_eq!(
+                    super::switch_statement(&input),
+                    IResult::Done(" ", SwitchStatement {
+                        expression: Box::new(super::expression_list(expression).unwrap().1),
+                        block: super::case_block(block).unwrap().1,
+                    })
+                );
+            }
+
+            assert!(super::switch_statement(" switch ").is_incomplete());
+            assert!(super::switch_statement(" switch ( ").is_incomplete());
+            assert!(super::switch_statement(" switch (test) ").is_incomplete());
+
+            assert_eq!(super::switch_statement(" switch {} "), IResult::Error(ErrorKind::Tag));
+        }
     }
 
 }

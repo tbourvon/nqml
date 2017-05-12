@@ -1064,6 +1064,34 @@ pub mod parsing {
                 IResult::Done("\ntest ", BreakStatement(None))
             );
         }
+
+        #[test]
+        fn return_statement() {
+            assert!(super::return_statement("").is_incomplete());
+
+            assert_eq!(
+                super::return_statement(" return "),
+                IResult::Done("", ReturnStatement(None))
+            );
+
+            {
+                let expression = "test";
+
+                let input = format!(" return {} ", expression);
+
+                assert_eq!(
+                    super::return_statement(&input),
+                    IResult::Done("", ReturnStatement(
+                        Some(Box::new(super::expression_list(expression).unwrap().1))
+                    ))
+                );
+            }
+
+            assert_eq!(
+                super::return_statement(" return\ntest "),
+                IResult::Done("\ntest ", ReturnStatement(None))
+            );
+        }
     }
 
 }

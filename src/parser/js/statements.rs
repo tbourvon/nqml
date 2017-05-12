@@ -485,11 +485,11 @@ pub mod parsing {
 
     named!(return_statement<&str, ReturnStatement>, do_parse!(
         keyword!("return") >>
-        expression: opt!(do_parse!(
+        expression: opt!(complete!(do_parse!(
             not!(line_terminator) >>
             expression: expression_list >>
             (expression)
-        )) >>
+        ))) >>
         automatic_semicolon >>
         (ReturnStatement(box_opt(expression)))
     ));

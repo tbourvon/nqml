@@ -474,11 +474,11 @@ pub mod parsing {
 
     named!(break_statement<&str, BreakStatement>, do_parse!(
         keyword!("break") >>
-        label: opt!(do_parse!(
+        label: opt!(complete!(do_parse!(
             not!(line_terminator) >>
             label: js_identifier >>
             (label)
-        )) >>
+        ))) >>
         automatic_semicolon >>
         (BreakStatement(label))
     ));

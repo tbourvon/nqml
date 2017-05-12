@@ -230,14 +230,18 @@ pub mod parsing {
         (eof)
     ));
 
-    named!(pub line_terminator<&str, &str>, alt!(
-        tag_s!("\r\n")
-        |
-        tag_s!("\n")
-        |
-        tag_s!("\u{2028}")
-        |
-        tag_s!("\u{2029}")
+    named!(pub line_terminator<&str, &str>, do_parse!(
+        take_while_s!(is_whitespace_not_line_terminator) >>
+        line_terminator: alt!(
+            tag_s!("\r\n")
+            |
+            tag_s!("\n")
+            |
+            tag_s!("\u{2028}")
+            |
+            tag_s!("\u{2029}")
+        ) >>
+        (line_terminator)
     ));
 
     #[cfg(test)]

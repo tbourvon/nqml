@@ -23,6 +23,13 @@ pub mod parsing {
         c.is_whitespace()
     }
 
+    pub fn is_whitespace_not_line_terminator(c: char) -> bool {
+        match c {
+            '\r' | '\n' | '\u{2028}' | '\u{2029}' => false,
+            other => is_whitespace(other),
+        }
+    }
+
     pub fn keyword<'a>(i: &'a str, kw: &str) -> IResult<&'a str, &'a str> {
         do_parse!(i,
             take_while_s!(is_whitespace) >>

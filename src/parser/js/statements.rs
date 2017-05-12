@@ -531,12 +531,12 @@ pub mod parsing {
     named!(case_block<&str, CaseBlock>, do_parse!(
         keyword!("{") >>
         clauses: opt!(case_clauses) >>
-        keyword!("}") >>
         default_and_more_clauses: opt!(do_parse!(
             default_clause: default_clause >>
             more_clauses: opt!(case_clauses) >>
             (default_clause, more_clauses)
         )) >>
+        keyword!("}") >>
         ({
             let (default_clause, more_clauses) = match default_and_more_clauses {
                 Some((d, m)) => (Some(d), m),

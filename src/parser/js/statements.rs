@@ -1118,6 +1118,28 @@ pub mod parsing {
 
             assert_eq!(super::with_statement(" with {} "), IResult::Error(ErrorKind::Tag));
         }
+
+        #[test]
+        fn labelled_statement() {
+            assert!(super::labelled_statement("").is_incomplete());
+
+            {
+                let label = "test";
+                let statement = "{}";
+
+                let input = format!(" {}: {} ", label, statement);
+
+                assert_eq!(
+                    super::labelled_statement(&input),
+                    IResult::Done(" ", LabelledStatement {
+                        label: super::js_identifier(label).unwrap().1,
+                        statement: Box::new(super::statement(statement).unwrap().1),
+                    })
+                );
+            }
+
+            assert!(super::labelled_statement(" test: ").is_incomplete());
+        }
     }
 
 }

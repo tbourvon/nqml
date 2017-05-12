@@ -1036,6 +1036,34 @@ pub mod parsing {
                 IResult::Done("\ntest ", ContinueStatement(None))
             );
         }
+
+        #[test]
+        fn break_statement() {
+            assert!(super::break_statement("").is_incomplete());
+
+            assert_eq!(
+                super::break_statement(" break "),
+                IResult::Done("", BreakStatement(None))
+            );
+
+            {
+                let label = "test";
+
+                let input = format!(" break {} ", label);
+
+                assert_eq!(
+                    super::break_statement(&input),
+                    IResult::Done("", BreakStatement(
+                        Some(super::js_identifier(label).unwrap().1)
+                    ))
+                );
+            }
+
+            assert_eq!(
+                super::break_statement(" break\ntest "),
+                IResult::Done("\ntest ", BreakStatement(None))
+            );
+        }
     }
 
 }

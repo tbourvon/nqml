@@ -1009,6 +1009,33 @@ pub mod parsing {
             assert_eq!(super::iteration_statement(" for (test in) {} "), IResult::Error(ErrorKind::Alt));
         }
 
+        #[test]
+        fn continue_statement() {
+            assert!(super::continue_statement("").is_incomplete());
+
+            assert_eq!(
+                super::continue_statement(" continue "),
+                IResult::Done("", ContinueStatement(None))
+            );
+
+            {
+                let label = "test";
+
+                let input = format!(" continue {} ", label);
+
+                assert_eq!(
+                    super::continue_statement(&input),
+                    IResult::Done("", ContinueStatement(
+                        Some(super::js_identifier(label).unwrap().1)
+                    ))
+                );
+            }
+
+            assert_eq!(
+                super::continue_statement(" continue\ntest "),
+                IResult::Done("\ntest ", ContinueStatement(None))
+            );
+        }
     }
 
 }

@@ -1092,6 +1092,32 @@ pub mod parsing {
                 IResult::Done("\ntest ", ReturnStatement(None))
             );
         }
+
+        #[test]
+        fn with_statement() {
+            assert!(super::with_statement("").is_incomplete());
+
+            {
+                let expression = "test";
+                let statement = "{}";
+
+                let input = format!(" with ({}) {} ", expression, statement);
+
+                assert_eq!(
+                    super::with_statement(&input),
+                    IResult::Done(" ", WithStatement {
+                        expression: Box::new(super::expression_list(expression).unwrap().1),
+                        statement: Box::new(super::statement(statement).unwrap().1),
+                    })
+                );
+            }
+
+            assert!(super::with_statement(" with ").is_incomplete());
+            assert!(super::with_statement(" with ( ").is_incomplete());
+            assert!(super::with_statement(" with (test) ").is_incomplete());
+
+            assert_eq!(super::with_statement(" with {} "), IResult::Error(ErrorKind::Tag));
+        }
     }
 
 }

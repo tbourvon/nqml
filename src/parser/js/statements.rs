@@ -463,11 +463,11 @@ pub mod parsing {
 
     named!(continue_statement<&str, ContinueStatement>, do_parse!(
         keyword!("continue") >>
-        label: opt!(do_parse!(
+        label: opt!(complete!(do_parse!(
             not!(line_terminator) >>
             label: js_identifier >>
             (label)
-        )) >>
+        ))) >>
         automatic_semicolon >>
         (ContinueStatement(label))
     ));

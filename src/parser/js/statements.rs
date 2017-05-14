@@ -1343,6 +1343,32 @@ pub mod parsing {
             assert!(super::try_statement(" try ").is_incomplete());
             assert!(super::try_statement(" try {} ").is_incomplete());
         }
+
+        #[test]
+        fn catch() {
+            assert!(super::catch("").is_incomplete());
+
+            {
+                let name = "test";
+                let block = "{}";
+
+                let input = format!(" catch ({}) {}", name, block);
+
+                assert_eq!(
+                    super::catch(&input),
+                    IResult::Done("", Catch {
+                        name: name,
+                        statement: super::block(block).unwrap().1
+                    })
+                );
+            }
+
+            assert!(super::catch(" catch ").is_incomplete());
+            assert!(super::catch(" catch ( ").is_incomplete());
+            assert!(super::catch(" catch (test) ").is_incomplete());
+
+            assert_eq!(super::catch(" catch {} "), IResult::Error(ErrorKind::Tag));
+        }
     }
 
 }

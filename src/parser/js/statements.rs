@@ -1352,11 +1352,11 @@ pub mod parsing {
                 let name = "test";
                 let block = "{}";
 
-                let input = format!(" catch ({}) {}", name, block);
+                let input = format!(" catch ({}) {} ", name, block);
 
                 assert_eq!(
                     super::catch(&input),
-                    IResult::Done("", Catch {
+                    IResult::Done(" ", Catch {
                         name: name,
                         statement: super::block(block).unwrap().1
                     })

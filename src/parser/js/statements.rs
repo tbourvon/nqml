@@ -1262,6 +1262,29 @@ pub mod parsing {
 
             assert!(super::default_clause(" default ").is_incomplete());
         }
+
+        #[test]
+        fn throw_statement() {
+            assert!(super::throw_statement("").is_incomplete());
+
+            {
+                let expression = "test";
+
+                let input = format!(" throw {} ", expression);
+
+                assert_eq!(
+                    super::throw_statement(&input),
+                    IResult::Done("", ThrowStatement(
+                        Box::new(super::expression_list(expression).unwrap().1)
+                    ))
+                );
+            }
+
+            assert_eq!(
+                super::throw_statement(" throw\ntest "),
+                IResult::Error(ErrorKind::Not)
+            );
+        }
     }
 
 }

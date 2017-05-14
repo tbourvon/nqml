@@ -24,7 +24,7 @@ pub struct UiPragma<'a> {
     pub pragma_type: UiQualifiedPragmaId<'a>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct UiQualifiedPragmaId<'a>(pub &'a str);
 
 #[derive(Debug)]
@@ -503,6 +503,27 @@ pub mod parsing {
             IResult::Done(new_i, UiQualifiedId(names))
         } else {
             IResult::Error(ErrorKind::Custom(0))
+        }
+    }
+
+    #[cfg(test)]
+    mod tests {
+        use nom::IResult;
+        use super::*;
+
+        #[test]
+        fn ui_qualified_pragma_id() {
+            assert!(super::ui_qualified_pragma_id("").is_incomplete());
+
+            assert_eq!(
+                super::ui_qualified_pragma_id(" test "),
+                IResult::Done(" ", UiQualifiedPragmaId("test"))
+            );
+
+            assert_eq!(
+                super::ui_qualified_pragma_id(" test.field "),
+                IResult::Error(ErrorKind::Custom(1))
+            );
         }
     }
 

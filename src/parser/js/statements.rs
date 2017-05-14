@@ -1199,6 +1199,42 @@ pub mod parsing {
 
             assert!(super::case_block(" { ").is_incomplete());
         }
+
+        #[test]
+        fn case_clause() {
+            assert!(super::case_clause("").is_incomplete());
+
+            {
+                let expression = "test";
+
+                let input = format!(" case {}: ", expression);
+
+                assert_eq!(
+                    super::case_clause(&input),
+                    IResult::Done(" ", CaseClause {
+                        expression: Box::new(super::expression_list(expression).unwrap().1),
+                        statements: None,
+                    })
+                );
+            }
+
+            {
+                let expression = "test";
+                let statements = "{}";
+
+                let input = format!(" case {}: {}", expression, statements);
+
+                assert_eq!(
+                    super::case_clause(&input),
+                    IResult::Done("", CaseClause {
+                        expression: Box::new(super::expression_list(expression).unwrap().1),
+                        statements: Some(super::statement_list(statements).unwrap().1),
+                    })
+                );
+            }
+
+            assert!(super::case_clause(" case ").is_incomplete());
+        }
     }
 
 }

@@ -72,4 +72,70 @@ pub mod parsing {
 
     named!(pub function_body<&str, FunctionBody>, conv!(FunctionBody(source_elements)));
 
+    #[cfg(test)]
+    mod tests {
+        use nom::{IResult, ErrorKind};
+        use super::*;
+
+        #[test]
+        fn function_declaration() {
+            assert!(super::function_declaration("").is_incomplete());
+
+            {
+                let name = "test";
+
+                let input = format!("function {}() {{}} ", name);
+                assert_eq!(
+                    super::function_declaration(&input),
+                    IResult::Done(" ", FunctionDeclaration {
+                        name: super::js_identifier(name).unwrap().1,
+                        formals: None,
+                        body: None,
+                    })
+                );
+            }
+
+            {
+                let name = "test";
+                let formals = "test";
+                let body = ";;";
+
+                let input = format!("function {}({}) {{{}}} ", name, formals, body);
+                assert_eq!(
+                    super::function_declaration(&input),
+                    IResult::Done(" ", FunctionDeclaration {
+                        name: super::js_identifier(name).unwrap().1,
+                        formals: Some(super::formal_parameter_list(formals).unwrap().1),
+                        body: Some(super::function_body(body).unwrap().1),
+                    })
+                );
+            }
+
+            assert!(super::function_declaration(" function ").is_incomplete());
+            assert!(super::function_declaration(" function test ").is_incomplete());
+            assert!(super::function_declaration(" function test (").is_incomplete());
+            assert!(super::function_declaration(" function test (test) ").is_incomplete());
+            assert!(super::function_declaration(" function test (test) { ").is_incomplete());
+
+            assert_eq!(
+                super::function_declaration("function () {{}} "),
+                IResult::Error(ErrorKind::Alt)
+            );
+
+            assert_eq!(
+                super::function_declaration("function test {{}} "),
+                IResult::Error(ErrorKind::Tag)
+            );
+
+            assert_eq!(
+                super::function_declaration("function {{}} "),
+                IResult::Error(ErrorKind::Alt)
+            );
+            
+            assert_eq!(
+                super::function_declaration("function test( {{}} "),
+                IResult::Error(ErrorKind::Tag)
+            );
+        }
+    }
 }

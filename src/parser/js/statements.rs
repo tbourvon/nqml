@@ -557,7 +557,7 @@ pub mod parsing {
         keyword!("case") >>
         expression: expression_list >>
         keyword!(":") >>
-        statements: opt!(statement_list) >>
+        statements: opt!(complete!(statement_list)) >>
         (CaseClause {
             expression: Box::new(expression),
             statements: statements,
@@ -567,7 +567,7 @@ pub mod parsing {
     named!(default_clause<&str, DefaultClause>, do_parse!(
         keyword!("default") >>
         keyword!(":") >>
-        statements: opt!(statement_list) >>
+        statements: opt!(complete!(statement_list)) >>
         (DefaultClause {
             statements: statements,
         })

@@ -1166,6 +1166,39 @@ pub mod parsing {
 
             assert_eq!(super::switch_statement(" switch {} "), IResult::Error(ErrorKind::Tag));
         }
+
+        #[test]
+        fn case_block() {
+            assert!(super::case_block("").is_incomplete());
+
+            assert_eq!(
+                super::case_block(" {} "),
+                IResult::Done(" ", CaseBlock {
+                    clauses: None,
+                    default_clause: None,
+                    more_clauses: None,
+                })
+            );
+
+            {
+                let clauses = "case test:";
+                let default_clause = "default:";
+                let more_clauses = "case test:";
+
+                let input = format!(" {{{}{}{}}} ", clauses, default_clause, more_clauses);
+
+                assert_eq!(
+                    super::case_block(&input),
+                    IResult::Done(" ", CaseBlock {
+                        clauses: Some(super::case_clauses(clauses).unwrap().1),
+                        default_clause: Some(super::default_clause(default_clause).unwrap().1),
+                        more_clauses: Some(super::case_clauses(more_clauses).unwrap().1),
+                    })
+                );
+            }
+
+            assert!(super::case_block(" { ").is_incomplete());
+        }
     }
 
 }

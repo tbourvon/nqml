@@ -1235,6 +1235,33 @@ pub mod parsing {
 
             assert!(super::case_clause(" case ").is_incomplete());
         }
+
+        #[test]
+        fn default_clause() {
+            assert!(super::default_clause("").is_incomplete());
+
+            assert_eq!(
+                super::default_clause(" default: "),
+                IResult::Done(" ", DefaultClause {
+                    statements: None,
+                })
+            );
+
+            {
+                let statements = "{}";
+
+                let input = format!(" default: {}", statements);
+
+                assert_eq!(
+                    super::default_clause(&input),
+                    IResult::Done("", DefaultClause {
+                        statements: Some(super::statement_list(statements).unwrap().1),
+                    })
+                );
+            }
+
+            assert!(super::default_clause(" default ").is_incomplete());
+        }
     }
 
 }

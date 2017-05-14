@@ -621,7 +621,7 @@ pub mod parsing {
     ));
 
     named!(finally<&str, Finally>, do_parse!(
-        keyword!("finally") >>
+        complete!(keyword!("finally")) >>
         statement: block >>
         (Finally {
             statement: statement,

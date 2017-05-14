@@ -1285,6 +1285,64 @@ pub mod parsing {
                 IResult::Error(ErrorKind::Not)
             );
         }
+
+        #[test]
+        #[allow(panic_params)]
+        fn try_statement() {
+            assert!(super::try_statement("").is_incomplete());
+
+            {
+                let block = "{}";
+                let catch = "catch (test) {}";
+
+                let input = format!(" try {} {} ", block, catch);
+
+                assert_eq!(
+                    super::try_statement(&input),
+                    IResult::Done(" ", TryStatement {
+                        statement: Box::new(Statement::Block(super::block(block).unwrap().1)),
+                        catch: Some(super::catch(catch).unwrap().1),
+                        finally: None,
+                    })
+                );
+            }
+
+            {
+                let block = "{}";
+                let finally = "finally {}";
+
+                let input = format!(" try {} {} ", block, finally);
+
+                assert_eq!(
+                    super::try_statement(&input),
+                    IResult::Done(" ", TryStatement {
+                        statement: Box::new(Statement::Block(super::block(block).unwrap().1)),
+                        catch: None,
+                        finally: Some(super::finally(finally).unwrap().1),
+                    })
+                );
+            }
+
+            {
+                let block = "{}";
+                let catch = "catch (test) {}";
+                let finally = "finally {}";
+
+                let input = format!(" try {} {} {} ", block, catch, finally);
+
+                assert_eq!(
+                    super::try_statement(&input),
+                    IResult::Done(" ", TryStatement {
+                        statement: Box::new(Statement::Block(super::block(block).unwrap().1)),
+                        catch: Some(super::catch(catch).unwrap().1),
+                        finally: Some(super::finally(finally).unwrap().1),
+                    })
+                );
+            }
+
+            assert!(super::try_statement(" try ").is_incomplete());
+            assert!(super::try_statement(" try {} ").is_incomplete());
+        }
     }
 
 }

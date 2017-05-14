@@ -1369,6 +1369,26 @@ pub mod parsing {
 
             assert_eq!(super::catch(" catch {} "), IResult::Error(ErrorKind::Tag));
         }
+
+        #[test]
+        fn finally() {
+            assert_eq!(super::finally(""), IResult::Error(ErrorKind::Complete));
+
+            {
+                let block = "{}";
+
+                let input = format!(" finally {} ", block);
+
+                assert_eq!(
+                    super::finally(&input),
+                    IResult::Done(" ", Finally {
+                        statement: super::block(block).unwrap().1
+                    })
+                );
+            }
+
+            assert!(super::finally(" finally ").is_incomplete());
+        }
     }
 
 }

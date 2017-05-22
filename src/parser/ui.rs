@@ -27,14 +27,14 @@ pub struct UiPragma<'a> {
 #[derive(Debug, PartialEq)]
 pub struct UiQualifiedPragmaId<'a>(pub &'a str);
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct UiImport<'a> {
     pub file: UiImportId<'a>,
     pub import_id: Option<&'a str>,
     pub version: Option<NumericLiteral>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum UiImportId<'a> {
     UiQualifiedId(UiQualifiedId<'a>),
     StringLiteral(StringLiteral<'a>),
@@ -123,7 +123,7 @@ pub enum UiSourceElement<'a> {
     VariableStatement(VariableStatement<'a>),
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct UiQualifiedId<'a>(pub std::vec::Vec<&'a str>);
 
 pub mod parsing {
@@ -166,9 +166,9 @@ pub mod parsing {
     named!(ui_import<&str, UiImport>, do_parse!(
         keyword!("import") >>
         file: ui_import_id >>
-        version: opt!(numeric_literal) >>
+        version: opt!(complete!(numeric_literal)) >>
         import_id: opt!(do_parse!(
-            keyword!("as") >>
+            complete!(keyword!("as")) >>
             import_id: js_identifier >>
             (import_id)
         )) >>
@@ -510,6 +510,46 @@ pub mod parsing {
     mod tests {
         use nom::IResult;
         use super::*;
+
+        #[test]
+        fn ui_import() {
+            assert!(super::ui_import("").is_incomplete());
+
+            {
+                let file = "Test";
+
+                let input = format!(" import {} ", file);
+
+                assert_eq!(
+                    super::ui_import(&input),
+                    IResult::Done("", UiImport {
+                        file: super::ui_import_id(file).unwrap().1,
+                        version: None,
+                        import_id: None,
+                    })
+                )
+            }
+
+            {
+                let file = "Test";
+                let version = "1.0";
+                let import_id = "Test";
+
+                let input = format!(" import {} {} as {} ", file, version, import_id);
+
+                assert_eq!(
+                    super::ui_import(&input),
+                    IResult::Done("", UiImport {
+                        file: super::ui_import_id(file).unwrap().1,
+                        version: Some(super::numeric_literal(version).unwrap().1),
+                        import_id: Some(super::js_identifier(import_id).unwrap().1),
+                    })
+                )
+            }
+
+            assert!(super::ui_import(" import ").is_incomplete());
+            assert!(super::ui_import(" import Test as ").is_incomplete());
+        }
 
         #[test]
         fn ui_qualified_pragma_id() {

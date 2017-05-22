@@ -43,10 +43,10 @@ pub enum UiImportId<'a> {
 #[derive(Debug)]
 pub struct UiRootMember<'a>(pub UiObjectMemberList<'a>);
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct UiObjectMemberList<'a>(pub std::vec::Vec<UiObjectMember<'a>>);
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum UiObjectMember<'a> {
     UiObjectDefinition(UiObjectDefinition<'a>),
     UiArrayBinding(UiArrayBinding<'a>),
@@ -56,34 +56,34 @@ pub enum UiObjectMember<'a> {
     UiSourceElement(UiSourceElement<'a>),
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct UiObjectDefinition<'a> {
     pub qualified_type_name_id: UiQualifiedId<'a>,
     pub initializer: UiObjectInitializer<'a>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct UiObjectInitializer<'a> {
     pub members: Option<UiObjectMemberList<'a>>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct UiArrayBinding<'a> {
     pub qualified_id: UiQualifiedId<'a>,
     pub members: UiArrayMemberList<'a>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct UiArrayMemberList<'a>(pub std::vec::Vec<UiObjectMember<'a>>);
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct UiObjectBinding<'a> {
     pub qualified_id: UiQualifiedId<'a>,
     pub qualified_type_name_id: UiQualifiedId<'a>,
     pub initializer: UiObjectInitializer<'a>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct UiPublicMember<'a> {
     pub public_member_type: UiPublicMemberType,
     pub type_modifier: Option<&'a str>,
@@ -96,28 +96,28 @@ pub struct UiPublicMember<'a> {
     pub parameters: Option<UiParameterList<'a>>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum UiPublicMemberType {
     Signal,
     Property,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct UiParameterList<'a>(pub std::vec::Vec<UiParameter<'a>>);
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct UiParameter<'a> {
     pub parameter_type: UiQualifiedId<'a>,
     pub name: &'a str,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct UiScriptBinding<'a> {
     pub qualified_id: UiQualifiedId<'a>,
     pub statement: Box<Statement<'a>>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum UiSourceElement<'a> {
     FunctionDeclaration(FunctionDeclaration<'a>),
     VariableStatement(VariableStatement<'a>),
@@ -510,6 +510,33 @@ pub mod parsing {
     mod tests {
         use nom::IResult;
         use super::*;
+
+        #[test]
+        fn ui_object_initializer() {
+            assert!(super::ui_object_initializer("").is_incomplete());
+
+            assert_eq!(
+                super::ui_object_initializer(" {} "),
+                IResult::Done(" ", UiObjectInitializer {
+                    members: None,
+                })
+            );
+
+            {
+                let members = "test: test";
+
+                let input = format!(" {{{}}} ", members);
+
+                assert_eq!(
+                    super::ui_object_initializer(&input),
+                    IResult::Done(" ", UiObjectInitializer {
+                        members: Some(super::ui_object_member_list(members).unwrap().1),
+                    })
+                );
+            }
+
+            assert!(super::ui_object_initializer(" { ").is_incomplete());
+        }
 
         #[test]
         fn ui_import() {

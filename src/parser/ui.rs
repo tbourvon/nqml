@@ -229,7 +229,7 @@ pub mod parsing {
             keyword!("signal") >>
             name: identifier >>
             parameters: opt!(do_parse!(
-                keyword!("(") >>
+                complete!(keyword!("(")) >>
                 parameters: opt!(ui_parameter_list) >>
                 keyword!(")") >>
                 (parameters)
@@ -258,7 +258,7 @@ pub mod parsing {
             member_type: ui_property_type >>
             keyword!(">") >>
             name: js_identifier >>
-            keyword!(":") >>
+            complete!(keyword!(":")) >>
             keyword!("[") >>
             members: ui_array_member_list >>
             keyword!("]") >>
@@ -305,7 +305,7 @@ pub mod parsing {
             keyword!("property") >>
             member_type: ui_property_type >>
             name: js_identifier >>
-            keyword!(":") >>
+            complete!(keyword!(":")) >>
             qualified_type_name_id: ui_qualified_id >>
             initializer: ui_object_initializer >>
             (UiObjectMember::UiPublicMember(UiPublicMember {
@@ -334,7 +334,7 @@ pub mod parsing {
             keyword!("property") >>
             member_type: ui_property_type >>
             name: js_identifier >>
-            keyword!(":") >>
+            complete!(keyword!(":")) >>
             statement: ui_script_statement >>
             ({
                 let (default, readonly) = match default_readonly {
@@ -510,6 +510,418 @@ pub mod parsing {
     mod tests {
         use nom::IResult;
         use super::*;
+
+        #[test]
+        fn ui_object_member() {
+            assert!(super::ui_object_member("").is_incomplete());
+
+            // Signal
+            {
+                let name = "test";
+
+                let input = format!(" signal {} ", name);
+
+                assert_eq!(
+                    super::ui_object_member(&input),
+                    IResult::Done("", UiObjectMember::UiPublicMember(UiPublicMember {
+                        name: super::identifier(name).unwrap().1,
+                        type_modifier: None,
+                        parameters: None,
+                        member_type: None,
+                        public_member_type: UiPublicMemberType::Signal,
+                        statement: None,
+                        is_default_member: false,
+                        is_readonly_member: false,
+                        binding: None,
+                    }))
+                );
+            }
+
+            {
+                let name = "test";
+                let parameters = "test test";
+
+                let input = format!(" signal {} ({}) ", name, parameters);
+
+                assert_eq!(
+                    super::ui_object_member(&input),
+                    IResult::Done("", UiObjectMember::UiPublicMember(UiPublicMember {
+                        name: super::identifier(name).unwrap().1,
+                        type_modifier: None,
+                        parameters: Some(super::ui_parameter_list(parameters).unwrap().1),
+                        member_type: None,
+                        public_member_type: UiPublicMemberType::Signal,
+                        statement: None,
+                        is_default_member: false,
+                        is_readonly_member: false,
+                        binding: None,
+                    }))
+                );
+            }
+
+            assert!(super::ui_object_member(" signal ").is_incomplete());
+            assert!(super::ui_object_member(" signal test ( ").is_incomplete());
+
+            // Property Array Binding
+            {
+                let type_modifier = "test";
+                let member_type = "test";
+                let name = "test";
+                let members = "test {}";
+
+                let input = format!(" property {}<{}> {}: [{}] ", type_modifier, member_type, name, members);
+
+                assert_eq!(
+                    super::ui_object_member(&input),
+                    IResult::Done(" ", UiObjectMember::UiPublicMember(UiPublicMember {
+                        name: super::js_identifier(name).unwrap().1,
+                        type_modifier: Some(super::identifier(type_modifier).unwrap().1),
+                        parameters: None,
+                        member_type: Some(super::ui_property_type(member_type).unwrap().1),
+                        public_member_type: UiPublicMemberType::Property,
+                        statement: None,
+                        is_default_member: false,
+                        is_readonly_member: false,
+                        binding: Some(Box::new(UiObjectMember::UiArrayBinding(UiArrayBinding {
+                            qualified_id: UiQualifiedId(vec![name]),
+                            members: super::ui_array_member_list(members).unwrap().1,
+                        }))),
+                    }))
+                );
+            }
+
+            assert!(super::ui_object_member(" property ").is_incomplete());
+            assert!(super::ui_object_member(" property test ").is_incomplete());
+            assert!(super::ui_object_member(" property test< ").is_incomplete());
+            assert!(super::ui_object_member(" property test<test ").is_incomplete());
+            assert!(super::ui_object_member(" property test<test> ").is_incomplete());
+            assert!(super::ui_object_member(" property test<test> test: ").is_incomplete());
+            assert!(super::ui_object_member(" property test<test> test: [ ").is_incomplete());
+
+            // Property Array Declaration
+            {
+                let type_modifier = "test";
+                let member_type = "test";
+                let name = "test";
+
+                let input = format!(" property {}<{}> {} ", type_modifier, member_type, name);
+
+                assert_eq!(
+                    super::ui_object_member(&input),
+                    IResult::Done("", UiObjectMember::UiPublicMember(UiPublicMember {
+                        name: super::js_identifier(name).unwrap().1,
+                        type_modifier: Some(super::identifier(type_modifier).unwrap().1),
+                        parameters: None,
+                        member_type: Some(super::ui_property_type(member_type).unwrap().1),
+                        public_member_type: UiPublicMemberType::Property,
+                        statement: None,
+                        is_default_member: false,
+                        is_readonly_member: false,
+                        binding: None,
+                    }))
+                );
+            }
+
+            {
+                let type_modifier = "test";
+                let member_type = "test";
+                let name = "test";
+
+                let input = format!(" default property {}<{}> {} ", type_modifier, member_type, name);
+
+                assert_eq!(
+                    super::ui_object_member(&input),
+                    IResult::Done("", UiObjectMember::UiPublicMember(UiPublicMember {
+                        name: super::js_identifier(name).unwrap().1,
+                        type_modifier: Some(super::identifier(type_modifier).unwrap().1),
+                        parameters: None,
+                        member_type: Some(super::ui_property_type(member_type).unwrap().1),
+                        public_member_type: UiPublicMemberType::Property,
+                        statement: None,
+                        is_default_member: true,
+                        is_readonly_member: false,
+                        binding: None,
+                    }))
+                );
+            }
+
+            assert!(super::ui_object_member(" default ").is_incomplete());
+            assert!(super::ui_object_member(" property ").is_incomplete());
+            assert!(super::ui_object_member(" property test ").is_incomplete());
+            assert!(super::ui_object_member(" property test< ").is_incomplete());
+            assert!(super::ui_object_member(" property test<test ").is_incomplete());
+            assert!(super::ui_object_member(" property test<test> ").is_incomplete());
+
+            // Property Object Binding
+            {
+                let member_type = "test";
+                let name = "test";
+                let qualified_type_name_id = "test";
+                let initializer = "{}";
+
+                let input = format!(" property {} {}: {} {} ", member_type, name, qualified_type_name_id, initializer);
+
+                assert_eq!(
+                    super::ui_object_member(&input),
+                    IResult::Done(" ", UiObjectMember::UiPublicMember(UiPublicMember {
+                        name: super::js_identifier(name).unwrap().1,
+                        type_modifier: None,
+                        parameters: None,
+                        member_type: Some(super::ui_property_type(member_type).unwrap().1),
+                        public_member_type: UiPublicMemberType::Property,
+                        statement: None,
+                        is_default_member: false,
+                        is_readonly_member: false,
+                        binding: Some(Box::new(UiObjectMember::UiObjectBinding(UiObjectBinding {
+                            qualified_id: UiQualifiedId(vec![name]),
+                            qualified_type_name_id: super::ui_qualified_id(qualified_type_name_id).unwrap().1,
+                            initializer: super::ui_object_initializer(initializer).unwrap().1,
+                        }))),
+                    }))
+                );
+            }
+
+            {
+                let member_type = "test";
+                let name = "test";
+                let qualified_type_name_id = "test";
+                let initializer = "{}";
+
+                let input = format!(" readonly property {} {}: {} {} ", member_type, name, qualified_type_name_id, initializer);
+
+                assert_eq!(
+                    super::ui_object_member(&input),
+                    IResult::Done(" ", UiObjectMember::UiPublicMember(UiPublicMember {
+                        name: super::js_identifier(name).unwrap().1,
+                        type_modifier: None,
+                        parameters: None,
+                        member_type: Some(super::ui_property_type(member_type).unwrap().1),
+                        public_member_type: UiPublicMemberType::Property,
+                        statement: None,
+                        is_default_member: false,
+                        is_readonly_member: true,
+                        binding: Some(Box::new(UiObjectMember::UiObjectBinding(UiObjectBinding {
+                            qualified_id: UiQualifiedId(vec![name]),
+                            qualified_type_name_id: super::ui_qualified_id(qualified_type_name_id).unwrap().1,
+                            initializer: super::ui_object_initializer(initializer).unwrap().1,
+                        }))),
+                    }))
+                );
+            }
+
+            assert!(super::ui_object_member(" readonly ").is_incomplete());
+            assert!(super::ui_object_member(" property ").is_incomplete());
+            assert!(super::ui_object_member(" property test ").is_incomplete());
+            assert!(super::ui_object_member(" property test test: ").is_incomplete());
+            assert!(super::ui_object_member(" property test test: test ").is_incomplete());
+
+            // Property Script Statement Binding
+            {
+                let member_type = "test";
+                let name = "test";
+                let statement = ";";
+
+                let input = format!(" property {} {}: {} ", member_type, name, statement);
+
+                assert_eq!(
+                    super::ui_object_member(&input),
+                    IResult::Done(" ", UiObjectMember::UiPublicMember(UiPublicMember {
+                        name: super::js_identifier(name).unwrap().1,
+                        type_modifier: None,
+                        parameters: None,
+                        member_type: Some(super::ui_property_type(member_type).unwrap().1),
+                        public_member_type: UiPublicMemberType::Property,
+                        statement: Some(Box::new(super::ui_script_statement(statement).unwrap().1)),
+                        is_default_member: false,
+                        is_readonly_member: false,
+                        binding: None,
+                    }))
+                );
+            }
+
+            {
+                let member_type = "test";
+                let name = "test";
+                let statement = ";";
+
+                let input = format!(" default property {} {}: {} ", member_type, name, statement);
+
+                assert_eq!(
+                    super::ui_object_member(&input),
+                    IResult::Done(" ", UiObjectMember::UiPublicMember(UiPublicMember {
+                        name: super::js_identifier(name).unwrap().1,
+                        type_modifier: None,
+                        parameters: None,
+                        member_type: Some(super::ui_property_type(member_type).unwrap().1),
+                        public_member_type: UiPublicMemberType::Property,
+                        statement: Some(Box::new(super::ui_script_statement(statement).unwrap().1)),
+                        is_default_member: true,
+                        is_readonly_member: false,
+                        binding: None,
+                    }))
+                );
+            }
+
+            {
+                let member_type = "test";
+                let name = "test";
+                let statement = ";";
+
+                let input = format!(" readonly property {} {}: {} ", member_type, name, statement);
+
+                assert_eq!(
+                    super::ui_object_member(&input),
+                    IResult::Done(" ", UiObjectMember::UiPublicMember(UiPublicMember {
+                        name: super::js_identifier(name).unwrap().1,
+                        type_modifier: None,
+                        parameters: None,
+                        member_type: Some(super::ui_property_type(member_type).unwrap().1),
+                        public_member_type: UiPublicMemberType::Property,
+                        statement: Some(Box::new(super::ui_script_statement(statement).unwrap().1)),
+                        is_default_member: false,
+                        is_readonly_member: true,
+                        binding: None,
+                    }))
+                );
+            }
+
+            assert!(super::ui_object_member(" readonly ").is_incomplete());
+            assert!(super::ui_object_member(" default ").is_incomplete());
+            assert!(super::ui_object_member(" property ").is_incomplete());
+            assert!(super::ui_object_member(" property test ").is_incomplete());
+            assert!(super::ui_object_member(" property test test: ").is_incomplete());
+
+            // Property Declaration
+            {
+                let member_type = "test";
+                let name = "test";
+
+                let input = format!(" property {} {} ", member_type, name);
+
+                assert_eq!(
+                    super::ui_object_member(&input),
+                    IResult::Done("", UiObjectMember::UiPublicMember(UiPublicMember {
+                        name: super::js_identifier(name).unwrap().1,
+                        type_modifier: None,
+                        parameters: None,
+                        member_type: Some(super::ui_property_type(member_type).unwrap().1),
+                        public_member_type: UiPublicMemberType::Property,
+                        statement: None,
+                        is_default_member: false,
+                        is_readonly_member: false,
+                        binding: None,
+                    }))
+                );
+            }
+
+            {
+                let member_type = "test";
+                let name = "test";
+
+                let input = format!(" default property {} {} ", member_type, name);
+
+                assert_eq!(
+                    super::ui_object_member(&input),
+                    IResult::Done("", UiObjectMember::UiPublicMember(UiPublicMember {
+                        name: super::js_identifier(name).unwrap().1,
+                        type_modifier: None,
+                        parameters: None,
+                        member_type: Some(super::ui_property_type(member_type).unwrap().1),
+                        public_member_type: UiPublicMemberType::Property,
+                        statement: None,
+                        is_default_member: true,
+                        is_readonly_member: false,
+                        binding: None,
+                    }))
+                );
+            }
+
+            assert!(super::ui_object_member(" default ").is_incomplete());
+            assert!(super::ui_object_member(" property ").is_incomplete());
+            assert!(super::ui_object_member(" property test ").is_incomplete());
+
+            // Script Binding
+            {
+                let qualified_id = "test";
+                let statement = ";";
+
+                let input = format!(" {}: {} ", qualified_id, statement);
+
+                assert_eq!(
+                    super::ui_object_member(&input),
+                    IResult::Done(" ", UiObjectMember::UiScriptBinding(UiScriptBinding {
+                        qualified_id: super::ui_qualified_id(qualified_id).unwrap().1,
+                        statement: Box::new(super::ui_script_statement(statement).unwrap().1),
+                    }))
+                );
+            }
+
+            assert!(super::ui_object_member(" test ").is_incomplete());
+            assert!(super::ui_object_member(" test: ").is_incomplete());
+
+            // Array Binding
+            {
+                let qualified_id = "test";
+                let members = "test {}";
+
+                let input = format!(" {}: [{}] ", qualified_id, members);
+
+                assert_eq!(
+                    super::ui_object_member(&input),
+                    IResult::Done(" ", UiObjectMember::UiArrayBinding(UiArrayBinding {
+                        qualified_id: super::ui_qualified_id(qualified_id).unwrap().1,
+                        members: super::ui_array_member_list(members).unwrap().1,
+                    }))
+                );
+            }
+
+            assert!(super::ui_object_member(" test ").is_incomplete());
+            assert!(super::ui_object_member(" test: ").is_incomplete());
+            assert!(super::ui_object_member(" test: [ ").is_incomplete());
+
+            // Object Binding
+            {
+                let qualified_id = "test";
+                let qualified_type_name_id = "test";
+                let initializer = "{}";
+
+                let input = format!(" {}: {} {} ", qualified_id, qualified_type_name_id, initializer);
+
+                assert_eq!(
+                    super::ui_object_member(&input),
+                    IResult::Done(" ", UiObjectMember::UiObjectBinding(UiObjectBinding {
+                        qualified_id: super::ui_qualified_id(qualified_id).unwrap().1,
+                        qualified_type_name_id: super::ui_qualified_id(qualified_type_name_id).unwrap().1,
+                        initializer: super::ui_object_initializer(initializer).unwrap().1,
+                    }))
+                );
+            }
+
+            assert!(super::ui_object_member(" test ").is_incomplete());
+            assert!(super::ui_object_member(" test: ").is_incomplete());
+
+            // On Object Binding
+            {
+                let qualified_type_name_id = "test";
+                let qualified_id = "test";
+                let initializer = "{}";
+
+                let input = format!(" {} on {} {} ", qualified_type_name_id, qualified_id, initializer);
+
+                assert_eq!(
+                    super::ui_object_member(&input),
+                    IResult::Done(" ", UiObjectMember::UiObjectBinding(UiObjectBinding {
+                        qualified_id: super::ui_qualified_id(qualified_id).unwrap().1,
+                        qualified_type_name_id: super::ui_qualified_id(qualified_type_name_id).unwrap().1,
+                        initializer: super::ui_object_initializer(initializer).unwrap().1,
+                    }))
+                );
+            }
+
+            assert!(super::ui_object_member(" test ").is_incomplete());
+            assert!(super::ui_object_member(" test on ").is_incomplete());
+            assert!(super::ui_object_member(" test on test ").is_incomplete());
+        }
 
         #[test]
         fn ui_object_initializer() {

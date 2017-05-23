@@ -991,6 +991,31 @@ pub mod parsing {
         }
 
         #[test]
+        fn ui_qualified_id() {
+            assert!(super::ui_qualified_id("").is_incomplete());
+
+            assert_eq!(
+                super::ui_qualified_id(" test "),
+                IResult::Done(" ", UiQualifiedId(vec!["test"]))
+            );
+
+            assert_eq!(
+                super::ui_qualified_id(" test.test.test "),
+                IResult::Done(" ", UiQualifiedId(vec!["test", "test", "test"]))
+            );
+
+            assert_eq!(
+                super::ui_qualified_id(" test[test] "),
+                IResult::Done(" ", UiQualifiedId(vec!["test"]))
+            );
+
+            assert_eq!(
+                super::ui_qualified_id(" test[test][test] "),
+                IResult::Error(ErrorKind::Custom(0))
+            );
+        }
+
+        #[test]
         fn ui_qualified_pragma_id() {
             assert!(super::ui_qualified_pragma_id("").is_incomplete());
 
